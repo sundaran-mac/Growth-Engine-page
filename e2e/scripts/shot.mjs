@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- a command line script: it prints the saved file path. */
 /**
  * Screenshot one screen at the Figma frame size (1440 x 960) for visual comparison.
  *   node e2e/scripts/shot.mjs <path> <out.png> [role=jeeva] [base=http://localhost:5173]

@@ -25,7 +25,7 @@ export const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = 'SheetOverlay';
 
 const sheetVariants = cva(
-  'fixed z-50 flex flex-col gap-4 bg-surface-card shadow-popover ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=open]:duration-200',
+  'fixed z-50 flex flex-col gap-4 bg-surface-card shadow-overlay ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-150 data-[state=open]:duration-200',
   {
     variants: {
       side: {

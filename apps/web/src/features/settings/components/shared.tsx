@@ -39,7 +39,7 @@ export function SaveBar({
   return (
     <div
       className={cn(
-        'sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-5 py-3 shadow-popover transition-opacity',
+        'sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-5 py-3 shadow-overlay transition-opacity',
         dirty ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
       aria-hidden={!dirty}

@@ -90,7 +90,9 @@ const config: Config = {
         sm: '6px',
       },
       boxShadow: {
-        popover: '0 12px 32px -8px rgb(26 23 20 / 0.18), 0 2px 6px rgb(26 23 20 / 0.06)',
+        // Floating layers (menus, selects, popovers, dialogs, tooltips). Not named "popover":
+        // `colors.popover` exists too, and `shadow-popover` would then also set a white shadow colour.
+        overlay: '0 16px 40px -12px rgb(14 13 12 / 0.28), 0 4px 12px -4px rgb(14 13 12 / 0.12)',
       },
       width: {
         sidebar: '264px',

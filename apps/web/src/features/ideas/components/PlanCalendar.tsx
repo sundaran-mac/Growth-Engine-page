@@ -42,7 +42,7 @@ function ItemChip({ item, dragging = false }: { item: PlanItemView; dragging?: b
         'block w-full rounded-md px-2 py-1.5 text-left text-[10px] font-semibold leading-[1.4] [overflow-wrap:anywhere]',
         item.mode ? MODE_PLAN_CLASS[item.mode] : NO_MODE_PLAN_CLASS,
         item.needsShootSlot && 'ring-2 ring-inset ring-danger/60',
-        dragging && 'shadow-popover',
+        dragging && 'shadow-overlay',
       )}
     >
       {itemLabel(item)}

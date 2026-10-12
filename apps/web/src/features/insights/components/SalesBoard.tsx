@@ -75,8 +75,8 @@ function LeadCard({
         aria-label={`${lead.organisation}, ${lead.productShortName}, ${STAGE_LABELS[lead.stage]}. Open details${draggable ? ', or press Space to move' : ''}.`}
         className={cn(
           'focus-ring flex w-full flex-col items-start gap-1.5 rounded-[14px] p-3.5 text-left transition-shadow',
-          selected ? 'bg-joy-soft' : 'border border-hairline bg-surface-card hover:shadow-popover',
-          isDragging && 'z-10 cursor-grabbing shadow-popover',
+          selected ? 'bg-joy-soft' : 'border border-hairline bg-surface-card hover:shadow-overlay',
+          isDragging && 'z-10 cursor-grabbing shadow-overlay',
           draggable && !isDragging && 'cursor-grab',
         )}
       >
