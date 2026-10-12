@@ -1,5 +1,14 @@
 import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+/**
+ * tailwind-merge must know our custom font sizes (tailwind.config.ts `fontSize`).
+ * Without this it reads `text-13` or `text-stat` as a text colour and drops the real colour,
+ * for example `text-media-text` on a dark button, which then shows black text on black.
+ */
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { 'font-size': [{ text: ['2xs', '13', '17', 'stat'] }] } },
+});
 
 /** Merge class names; later Tailwind classes win over earlier ones. */
 export function cn(...inputs: ClassValue[]): string {
