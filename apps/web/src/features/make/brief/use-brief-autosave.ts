@@ -9,7 +9,15 @@
  */
 import { useQueryClient } from '@tanstack/react-query';
 import * as React from 'react';
-import type { Brief, ClaudeSuggestions, ContentMode, Language, Platform, Ratio, UpdateBriefInput } from '@growth-desk/contract';
+import type {
+  Brief,
+  ClaudeSuggestions,
+  ContentMode,
+  Language,
+  Platform,
+  Ratio,
+  UpdateBriefInput,
+} from '@growth-desk/contract';
 import { isApiError } from '@/lib/api';
 import { makeKeys, useUpdateBrief } from '../api';
 
@@ -60,7 +68,10 @@ export interface BriefAutosave {
   reload: () => Promise<void>;
 }
 
-export function useBriefAutosave(brief: Brief, opts: { delay?: number; enabled?: boolean } = {}): BriefAutosave {
+export function useBriefAutosave(
+  brief: Brief,
+  opts: { delay?: number; enabled?: boolean } = {},
+): BriefAutosave {
   const { delay = 800, enabled = true } = opts;
   const qc = useQueryClient();
   const { mutateAsync } = useUpdateBrief(brief.id);
@@ -70,7 +81,11 @@ export function useBriefAutosave(brief: Brief, opts: { delay?: number; enabled?:
   const inflight = React.useRef<BriefPatch | null>(null);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const statusRef = React.useRef<AutosaveStatus>('idle');
-  const [view, setView] = React.useState<{ pending: BriefPatch; inflight: BriefPatch | null; status: AutosaveStatus }>({
+  const [view, setView] = React.useState<{
+    pending: BriefPatch;
+    inflight: BriefPatch | null;
+    status: AutosaveStatus;
+  }>({
     pending: {},
     inflight: null,
     status: 'idle',
@@ -96,7 +111,11 @@ export function useBriefAutosave(brief: Brief, opts: { delay?: number; enabled?:
       pending.current = {};
       publish('saving');
       try {
-        const body: UpdateBriefInput = { version: latest.version, updatedAt: latest.updatedAt, ...patch };
+        const body: UpdateBriefInput = {
+          version: latest.version,
+          updatedAt: latest.updatedAt,
+          ...patch,
+        };
         await mutateAsync(body);
         inflight.current = null;
         setError(null);

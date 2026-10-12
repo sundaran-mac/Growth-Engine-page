@@ -44,10 +44,11 @@ describe('Sidebar', () => {
     renderSidebar('/ideas');
     const ideas = screen.getByRole('link', { name: 'Ideas' });
     expect(ideas).toHaveAttribute('aria-current', 'page');
-    expect(ideas).toHaveClass('bg-joy');
+    // The orange pill is a child element that slides between items (shared layout animation).
+    expect(ideas.querySelector('.bg-joy')).not.toBeNull();
     const home = screen.getByRole('link', { name: 'Home' });
     expect(home).not.toHaveAttribute('aria-current');
-    expect(home).not.toHaveClass('bg-joy');
+    expect(home.querySelector('.bg-joy')).toBeNull();
   });
 
   it('keeps a section active on its detail routes', () => {

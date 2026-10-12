@@ -3,6 +3,7 @@
  * platform (weekday + local time + audience time zone), and a preview of the next 10 slots.
  * Placeholder design until Jeeva designs Settings.
  */
+import { AnimatePresence, motion } from 'motion/react';
 import { CalendarCheck, Plus, Trash } from '@phosphor-icons/react';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ import { IconButton } from '@/components/atoms/IconButton';
 import { Input } from '@/components/atoms/Input';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { DURATION, EASE } from '@/components/motion';
 import { Panel } from '@/components/organisms/Panel';
 import {
   Select,
@@ -26,7 +28,14 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useNextSlots, useReplaceSlots, useSlots } from '../api';
-import { errorToast, formatDayTime, platformLabel, viewerTimeZone, zoneAbbr } from '../format';
+import {
+  errorToast,
+  formatDayTime,
+  platformLabel,
+  viewerTimeZone,
+  viewerZoneName,
+  zoneAbbr,
+} from '../format';
 import { useSettingsDraft } from '../use-settings-draft';
 import { FieldError } from './GeneralTab';
 import {
@@ -42,6 +51,14 @@ import { useDraft, useReportDirty } from '../draft';
 import { newSlotKey, toDraft, toInput, type SlotDraft } from '../slot-draft';
 
 const KEYS = ['launchDate', 'timezone', 'autoSchedule'] as const;
+
+/** Slot rows ease in when added and fade out when removed; the rows below slide up. */
+const SLOT_MOTION = {
+  initial: { opacity: 0, y: -4 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, transition: { duration: DURATION.fast, ease: EASE } },
+  transition: { duration: DURATION.base, ease: EASE },
+} as const;
 
 export function PostingTab({
   productId,
@@ -210,32 +227,42 @@ export function PostingTab({
           />
         ) : (
           <div className="flex flex-col gap-5">
-            {PLATFORMS.filter((p) => slots.some((s) => s.platform === p)).map((platform) => (
-              <fieldset key={platform} className="flex flex-col gap-2">
-                <legend className="mb-2">
-                  <PlatformBadge platform={platform} />
-                </legend>
-                {slots
-                  .filter((s) => s.platform === platform)
-                  .map((s) => (
-                    <SlotRow
-                      key={s.key}
-                      slot={s}
-                      error={slotErrors[s.key]}
-                      disabled={disabled}
-                      onChange={(patch) => patchSlot(s.key, patch)}
-                      onRemove={() => setSlots((list) => list.filter((x) => x.key !== s.key))}
-                    />
-                  ))}
-              </fieldset>
-            ))}
+            <AnimatePresence initial={false}>
+              {PLATFORMS.filter((p) => slots.some((s) => s.platform === p)).map((platform) => (
+                <motion.fieldset
+                  key={platform}
+                  layout="position"
+                  {...SLOT_MOTION}
+                  className="flex flex-col gap-2"
+                >
+                  <legend className="mb-2">
+                    <PlatformBadge platform={platform} />
+                  </legend>
+                  <AnimatePresence initial={false}>
+                    {slots
+                      .filter((s) => s.platform === platform)
+                      .map((s) => (
+                        <motion.div key={s.key} layout="position" {...SLOT_MOTION}>
+                          <SlotRow
+                            slot={s}
+                            error={slotErrors[s.key]}
+                            disabled={disabled}
+                            onChange={(patch) => patchSlot(s.key, patch)}
+                            onRemove={() => setSlots((list) => list.filter((x) => x.key !== s.key))}
+                          />
+                        </motion.div>
+                      ))}
+                  </AnimatePresence>
+                </motion.fieldset>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </Panel>
 
       <Panel
         title="Next 10 slots"
-        description={`From the saved slots, after the launch day, skipping slots that already have a post. Your time zone: ${viewer.replace(/_/g, ' ')}.`}
+        description={`From the saved slots, after the launch day, skipping slots that already have a post. Your time zone: ${viewerZoneName(viewer)}.`}
       >
         {slotsDirty ? (
           <p className="text-xs font-medium text-joy-text">Save to update this preview.</p>
@@ -259,7 +286,7 @@ export function PostingTab({
                     {formatDayTime(s.at, s.audienceTimezone)} {zoneAbbr(s.at, s.audienceTimezone)}
                   </p>
                   <p className="truncate text-xs text-muted">
-                    {s.audienceTimezone === viewer
+                    {zoneAbbr(s.at, s.audienceTimezone) === zoneAbbr(s.at, viewer)
                       ? 'Your time too'
                       : `Your time: ${formatDayTime(s.at, viewer)}`}
                     {s.label ? ` · ${s.label}` : ''}

@@ -34,12 +34,13 @@ function nextStepText(lead: LeadView): string {
 
 function Item({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <Kicker as="dt" size="sm">
+    // Figma: label and value are siblings with the same 12px gap as the rest of the panel.
+    <>
+      <Kicker as="dt" size="sm" className="tracking-kicker">
         {label}
       </Kicker>
       <dd className="text-sm font-medium text-ink">{children}</dd>
-    </div>
+    </>
   );
 }
 
@@ -90,6 +91,8 @@ export function LeadDetailPanel({
             variant="ghost"
             size="sm"
             leftIcon={PencilSimple}
+            // Keep the header as tall as the 18px title (Figma has no button here).
+            className="-my-1.5"
             onClick={onEdit}
             aria-label={`Edit ${lead.organisation}`}
           >
@@ -141,7 +144,7 @@ export function LeadDetailPanel({
       ) : null}
 
       <div className="mt-2 flex flex-col gap-2 border-t border-hairline pt-4">
-        <Kicker as="h3" size="sm">
+        <Kicker as="h3" size="sm" className="tracking-kicker">
           Activity
         </Kicker>
         {activities.isPending ? (

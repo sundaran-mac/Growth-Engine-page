@@ -2,15 +2,9 @@
  * Analytics cards (Figma 242:1302): installs by channel, reach by week, value by content mode,
  * and the per-post ladder table.
  */
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import * as React from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
   CONTENT_MODE_LONG_LABELS,
   PLATFORM_LABELS,
@@ -25,9 +19,10 @@ import { Icon } from '@/components/atoms/Icon';
 import { ErrorState } from '@/components/molecules/ErrorState';
 import { DataTable, type DataTableColumn } from '@/components/organisms/DataTable';
 import { Panel } from '@/components/organisms/Panel';
+import { DURATION, EASE } from '@/components/motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { compactNumber, PLATFORM_ICONS } from '../format';
+import { PLATFORM_ICONS } from '../format';
 
 /** Bar colours in rank order, as in the Figma frame. */
 const BAR_TONES = ['bg-joy', 'bg-care', 'bg-joy-soft', 'bg-care-soft', 'bg-surface-sunken'];
@@ -78,18 +73,23 @@ export function InstallsByChannelPanel({ q }: { q: QueryState<AnalyticsByChannel
                   <span className="w-[90px] shrink-0 text-13 text-ink">
                     {PLATFORM_LABELS[item.platform]}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span
+                  {/* Figma: the number sits 10px after the end of its bar. */}
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5">
+                    <motion.span
                       className={cn(
-                        'block h-[22px] rounded-sm',
+                        'block h-[22px] shrink-0 rounded-sm',
                         BAR_TONES[i] ?? 'bg-surface-sunken',
                       )}
-                      style={{ width: `${Math.max(2, (item.installs / max) * 100)}%` }}
+                      style={{
+                        width: `calc((100% - 3rem) * ${Math.max(0.02, item.installs / max)})`,
+                        transformOrigin: 'left',
+                      }}
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ duration: DURATION.slow, ease: EASE, delay: i * 0.04 }}
                       role="presentation"
                     />
-                  </span>
-                  <span className="w-10 shrink-0 text-13 font-semibold text-ink">
-                    {item.installs}
+                    <span className="shrink-0 text-13 font-semibold text-ink">{item.installs}</span>
                   </span>
                 </li>
               ))}
@@ -101,6 +101,12 @@ export function InstallsByChannelPanel({ q }: { q: QueryState<AnalyticsByChannel
   );
 }
 
+interface ChartRow {
+  week: string;
+  reach: number;
+  weekStart: string;
+}
+
 export function ReachByWeekPanel({
   q,
   foundersNote,
@@ -108,6 +114,19 @@ export function ReachByWeekPanel({
   q: QueryState<AnalyticsSummary>;
   foundersNote?: string;
 }) {
+  // Draw the line once. A refetch keeps the same array (query structural sharing), so the memo
+  // keeps the same chart rows and Recharts does not redraw the line.
+  const animate = !useReducedMotion();
+  const weeksRef = q.data?.reachByWeek;
+  const chartData = React.useMemo<ChartRow[]>(
+    () =>
+      (weeksRef ?? []).map((w) => ({
+        week: `W${w.isoWeek}`,
+        reach: w.reach,
+        weekStart: w.weekStart,
+      })),
+    [weeksRef],
+  );
   return (
     <Panel title={<span className="text-base">Reach by week</span>}>
       <PanelBody q={q} skeleton={<Skeleton className="h-[170px] w-full" />}>
@@ -115,11 +134,6 @@ export function ReachByWeekPanel({
           const weeks = d.reachByWeek;
           const first = weeks[0]?.isoWeek;
           const last = weeks[weeks.length - 1]?.isoWeek;
-          const data = weeks.map((w) => ({
-            week: `W${w.isoWeek}`,
-            reach: w.reach,
-            weekStart: w.weekStart,
-          }));
           return (
             <>
               <figure
@@ -127,21 +141,10 @@ export function ReachByWeekPanel({
                 aria-label={`Reach by week, weeks ${first} to ${last}`}
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                    <CartesianGrid vertical={false} stroke="rgb(var(--border-hairline))" />
-                    <XAxis
-                      dataKey="week"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11, fill: 'rgb(var(--text-muted))' }}
-                    />
-                    <YAxis
-                      width={40}
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fontSize: 11, fill: 'rgb(var(--text-muted))' }}
-                      tickFormatter={(v: number) => compactNumber(v)}
-                    />
+                  {/* Figma: a bare line with dots, no axes or grid. Hover shows the numbers. */}
+                  <LineChart data={chartData} margin={{ top: 6, right: 6, bottom: 6, left: 6 }}>
+                    <XAxis dataKey="week" hide />
+                    <YAxis hide domain={['dataMin', 'dataMax']} />
                     <Tooltip
                       formatter={(v) => [Number(v).toLocaleString('en-US'), 'Reach']}
                       labelFormatter={(label) => `Week ${String(label).slice(1)}`}
@@ -152,7 +155,10 @@ export function ReachByWeekPanel({
                       stroke="rgb(var(--heart-joy))"
                       strokeWidth={2.5}
                       dot={{ r: 3.5, fill: 'rgb(var(--heart-joy))', strokeWidth: 0 }}
-                      isAnimationActive={false}
+                      activeDot={{ r: 5, fill: 'rgb(var(--heart-joy))', strokeWidth: 0 }}
+                      isAnimationActive={animate}
+                      animationDuration={320}
+                      animationEasing="ease-out"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -178,10 +184,18 @@ export function ValueByModePanel({ q }: { q: QueryState<AnalyticsByMode> }) {
             <p className="text-sm text-muted">No numbers in this window yet.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] border-separate border-spacing-y-1 text-left">
-                <caption className="sr-only">
-                  Value per 1,000 reach by content mode, best first
-                </caption>
+              {/* Figma: fixed columns 260/140/200/160/rest, rows 12px apart. */}
+              <table
+                className="-my-3 w-full min-w-[760px] table-fixed border-separate border-spacing-y-3 text-left"
+                aria-label="Value per 1,000 reach by content mode, best first"
+              >
+                <colgroup>
+                  <col className="w-[260px]" />
+                  <col className="w-[140px]" />
+                  <col className="w-[200px]" />
+                  <col className="w-[160px]" />
+                  <col />
+                </colgroup>
                 <thead>
                   <tr className="text-2xs font-semibold uppercase tracking-[0.08em] text-muted">
                     {['Mode', 'Pieces', 'Value / 1K reach', 'Installs', 'Best channel'].map(
@@ -283,8 +297,9 @@ export function PostsPanel({
       title={<span className="text-base">Every post · the ladder</span>}
       description="Reach, then saves and shares, clicks, installs and activations. Best value first."
       flush
+      className="pb-2"
     >
-      <div className="px-2 pb-2">
+      <div>
         <DataTable
           caption="Numbers per post in the selected window"
           columns={postColumns}

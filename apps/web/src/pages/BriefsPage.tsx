@@ -1,13 +1,21 @@
-// Briefs list (route /briefs). No Figma frame exists for this list: placeholder design in the
-// house style (Page, chips, DataTable), to be replaced when Jeeva draws the frame.
+// Briefs list (route /briefs). No Figma frame exists for this list: built to match its siblings
+// (Review list, Studio picker): stage pills like the Brief stage tracker, a flush Panel table.
+// The active filter pill slides between stages (shared layoutId).
 import { Plus } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BRIEF_STAGE_LABELS, BRIEF_STAGES, type Brief, type BriefStage } from '@growth-desk/contract';
+import {
+  BRIEF_STAGE_LABELS,
+  BRIEF_STAGES,
+  type Brief,
+  type BriefStage,
+} from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { SearchInput } from '@/components/atoms/SearchInput';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { EmptyState } from '@/components/molecules/EmptyState';
+import { DURATION, EASE } from '@/components/motion';
 import { ErrorState } from '@/components/molecules/ErrorState';
 import { DataTable, type DataTableColumn } from '@/components/organisms/DataTable';
 import { Panel } from '@/components/organisms/Panel';
@@ -18,18 +26,38 @@ import { useBriefs } from '@/features/make/api';
 import { modeLabel, STAGE_TONES } from '@/features/make/brief/labels';
 import { NewBriefDialog } from '@/features/make/brief/NewBriefDialog';
 
-const updatedFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const updatedFormat = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+});
 
 const columns: DataTableColumn<Brief>[] = [
-  { id: 'code', header: 'Code', cell: (b) => <span className="font-semibold">{b.code}</span>, className: 'whitespace-nowrap' },
+  {
+    id: 'code',
+    header: 'Code',
+    cell: (b) => <span className="font-semibold">{b.code}</span>,
+    className: 'whitespace-nowrap',
+  },
   { id: 'title', header: 'Title', cell: (b) => b.title, className: 'min-w-[200px]' },
-  { id: 'mode', header: 'Mode', cell: (b) => modeLabel(b.mode), className: 'whitespace-nowrap text-muted' },
+  {
+    id: 'mode',
+    header: 'Mode',
+    cell: (b) => modeLabel(b.mode),
+    className: 'whitespace-nowrap text-muted',
+  },
   {
     id: 'stage',
     header: 'Stage',
     cell: (b) => <StatusChip tone={STAGE_TONES[b.stage]}>{BRIEF_STAGE_LABELS[b.stage]}</StatusChip>,
   },
-  { id: 'owner', header: 'Owner', cell: (b) => b.owner?.name ?? <span className="text-muted">Not set</span> },
+  {
+    id: 'owner',
+    header: 'Owner',
+    className: 'whitespace-nowrap',
+    cell: (b) => b.owner?.name ?? <span className="text-muted">Not set</span>,
+  },
   {
     id: 'updated',
     header: 'Updated',
@@ -67,7 +95,11 @@ export default function BriefsPage() {
   return (
     <Page
       title="Briefs"
-      subtitle={selected.product ? `One piece, fully written down · ${selected.product.name}` : 'One piece, fully written down'}
+      subtitle={
+        selected.product
+          ? `One piece, fully written down · ${selected.product.name}`
+          : 'One piece, fully written down'
+      }
       actions={
         <Button leftIcon={Plus} onClick={() => setCreating(true)} disabled={!selected.productId}>
           New brief
@@ -77,7 +109,10 @@ export default function BriefsPage() {
       {selected.isError ? (
         <ErrorState error={selected.error} onRetry={() => void selected.refetch()} />
       ) : !selected.isLoading && !selected.productId ? (
-        <EmptyState title="No product yet" description="Add a product first. Briefs belong to a product." />
+        <EmptyState
+          title="No product yet"
+          description="Add a product first. Briefs belong to a product."
+        />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3">
@@ -89,11 +124,21 @@ export default function BriefsPage() {
                   aria-pressed={stage === s}
                   onClick={() => setStage(s)}
                   className={cn(
-                    'focus-ring rounded-pill px-3 py-1 text-xs font-semibold transition-colors',
-                    stage === s ? 'bg-media-canvas text-media-text' : 'bg-surface-card text-ink hover:bg-surface-sunken',
+                    'focus-ring relative rounded-pill px-3 py-1 text-xs font-semibold transition-colors duration-200',
+                    stage === s
+                      ? 'text-media-text'
+                      : 'bg-surface-card text-ink hover:bg-surface-sunken',
                   )}
                 >
-                  {s === 'all' ? 'All' : BRIEF_STAGE_LABELS[s]}
+                  {stage === s ? (
+                    <motion.span
+                      layoutId="briefs-stage-filter"
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-pill bg-media-canvas"
+                      transition={{ duration: DURATION.base, ease: EASE }}
+                    />
+                  ) : null}
+                  <span className="relative">{s === 'all' ? 'All' : BRIEF_STAGE_LABELS[s]}</span>
                 </button>
               ))}
             </div>
@@ -114,17 +159,24 @@ export default function BriefsPage() {
               error={query.error}
               onRetry={() => void query.refetch()}
               onRowClick={(b) => navigate(`/briefs/${b.id}`)}
-              empty={filtered ? 'No briefs match this filter.' : 'No briefs yet. Open a starred idea as a brief, or start one by hand.'}
+              empty={
+                filtered
+                  ? 'No briefs match this filter.'
+                  : 'No briefs yet. Open a starred idea as a brief, or start one by hand.'
+              }
             />
           </Panel>
           {query.data && query.data.total > query.data.items.length ? (
             <p className="text-xs text-muted">
-              Showing {query.data.items.length} of {query.data.total}. Narrow the filter to see more.
+              Showing {query.data.items.length} of {query.data.total}. Narrow the filter to see
+              more.
             </p>
           ) : null}
         </>
       )}
-      {selected.productId ? <NewBriefDialog open={creating} onOpenChange={setCreating} productId={selected.productId} /> : null}
+      {selected.productId ? (
+        <NewBriefDialog open={creating} onOpenChange={setCreating} productId={selected.productId} />
+      ) : null}
     </Page>
   );
 }

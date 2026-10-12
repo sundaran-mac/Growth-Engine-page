@@ -1,4 +1,10 @@
-import { ArrowSquareOut, FileText, FilmStrip, Image as ImageIcon, Trash } from '@phosphor-icons/react';
+import {
+  ArrowSquareOut,
+  FileText,
+  FilmStrip,
+  Image as ImageIcon,
+  Trash,
+} from '@phosphor-icons/react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import type { MakeAsset, AssetKind, AssetUrlResponse } from '@growth-desk/contract';
@@ -29,7 +35,9 @@ const kindIcon: Record<AssetKind, typeof FilmStrip> = {
 function AssetFlags({ asset }: { asset: MakeAsset }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      <StatusChip tone={asset.consentOnFile ? 'care' : 'neutral'}>{asset.consentOnFile ? 'Consent on file' : 'No consent record'}</StatusChip>
+      <StatusChip tone={asset.consentOnFile ? 'care' : 'neutral'}>
+        {asset.consentOnFile ? 'Consent on file' : 'No consent record'}
+      </StatusChip>
       <StatusChip tone={asset.licence ? 'care' : 'neutral'} title={asset.licence ?? undefined}>
         {asset.licence ? 'Licensed' : 'No licence'}
       </StatusChip>
@@ -52,7 +60,12 @@ function PosterThumb({ asset }: { asset: MakeAsset }) {
   return (
     <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-tile bg-surface-sunken">
       {url.data ? (
-        <img src={url.data.url} alt={asset.fileName ?? 'Poster'} className="size-full object-cover" loading="lazy" />
+        <img
+          src={url.data.url}
+          alt={asset.fileName ?? 'Poster'}
+          className="size-full object-cover"
+          loading="lazy"
+        />
       ) : (
         <IconTile icon={ImageIcon} tone="neutral" />
       )}
@@ -70,7 +83,15 @@ export interface AssetListProps {
   emptyAction?: React.ReactNode;
 }
 
-export function AssetList({ briefId, assets, canEdit, layout = 'list', emptyTitle, emptyDescription, emptyAction }: AssetListProps) {
+export function AssetList({
+  briefId,
+  assets,
+  canEdit,
+  layout = 'list',
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
+}: AssetListProps) {
   const del = useDeleteAsset(briefId);
   const [toDelete, setToDelete] = React.useState<MakeAsset | null>(null);
 
@@ -82,10 +103,22 @@ export function AssetList({ briefId, assets, canEdit, layout = 'list', emptyTitl
     <div className="flex items-center gap-1">
       {canEdit ? <AssetDetailsButton briefId={briefId} asset={asset} /> : null}
       {asset.status === 'ready' ? (
-        <IconButton icon={ArrowSquareOut} label={`Open ${asset.fileName ?? 'file'}`} variant="ghost" size="sm" onClick={() => void openAsset(asset)} />
+        <IconButton
+          icon={ArrowSquareOut}
+          label={`Open ${asset.fileName ?? 'file'}`}
+          variant="ghost"
+          size="sm"
+          onClick={() => void openAsset(asset)}
+        />
       ) : null}
       {canEdit ? (
-        <IconButton icon={Trash} label={`Delete ${asset.fileName ?? 'file'}`} variant="ghost" size="sm" onClick={() => setToDelete(asset)} />
+        <IconButton
+          icon={Trash}
+          label={`Delete ${asset.fileName ?? 'file'}`}
+          variant="ghost"
+          size="sm"
+          onClick={() => setToDelete(asset)}
+        />
       ) : null}
     </div>
   );
@@ -95,33 +128,47 @@ export function AssetList({ briefId, assets, canEdit, layout = 'list', emptyTitl
       {layout === 'grid' ? (
         <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4" aria-label="Files">
           {assets.map((asset) => (
-            <li key={asset.id} className="flex flex-col gap-2 rounded-card border border-hairline bg-surface-card p-3">
+            <li
+              key={asset.id}
+              className="flex flex-col gap-2 rounded-card border border-hairline bg-surface-card p-3"
+            >
               <PosterThumb asset={asset} />
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-13 font-semibold text-ink">{asset.fileName ?? 'Untitled file'}</p>
+                  <p className="truncate text-13 font-semibold text-ink">
+                    {asset.fileName ?? 'Untitled file'}
+                  </p>
                   <p className="truncate text-xs text-muted">{assetMeta(asset)}</p>
                 </div>
                 {actions(asset)}
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
-                <StatusChip tone={statusChip[asset.status].tone}>{statusChip[asset.status].label}</StatusChip>
+                <StatusChip tone={statusChip[asset.status].tone}>
+                  {statusChip[asset.status].label}
+                </StatusChip>
                 <AssetFlags asset={asset} />
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <ul className="flex flex-col divide-y divide-hairline rounded-card border border-hairline bg-surface-card" aria-label="Files">
+        <ul
+          className="flex flex-col divide-y divide-hairline rounded-card border border-hairline bg-surface-card"
+          aria-label="Files"
+        >
           {assets.map((asset) => (
             <li key={asset.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
               <IconTile icon={kindIcon[asset.kind]} tone="neutral" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink">{asset.fileName ?? 'Untitled file'}</p>
+                <p className="truncate text-sm font-semibold text-ink">
+                  {asset.fileName ?? 'Untitled file'}
+                </p>
                 <p className="truncate text-xs text-muted">{assetMeta(asset)}</p>
               </div>
               <AssetFlags asset={asset} />
-              <StatusChip tone={statusChip[asset.status].tone}>{statusChip[asset.status].label}</StatusChip>
+              <StatusChip tone={statusChip[asset.status].tone}>
+                {statusChip[asset.status].label}
+              </StatusChip>
               {actions(asset)}
               {hasLoudness(asset.kind) ? (
                 <div className="basis-full pl-[54px]">

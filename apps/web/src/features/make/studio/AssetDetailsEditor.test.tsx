@@ -32,7 +32,9 @@ describe('Loudness edit in the asset list', () => {
       [`PATCH /assets/${asset.id}`]: () => jsonResponse({ ...asset, loudnessLufs: -14 }),
       [`GET /briefs/${BRIEF_ID}/assets`]: () => jsonResponse({ items: [asset], total: 1 }),
     });
-    renderWithProviders(<AssetList briefId={BRIEF_ID} assets={[asset]} canEdit emptyTitle="None" />);
+    renderWithProviders(
+      <AssetList briefId={BRIEF_ID} assets={[asset]} canEdit emptyTitle="None" />,
+    );
     const chip = screen.getByText('-11.8 LUFS (target -14)');
     expect(chip).toHaveAttribute('data-tone', 'reminder');
 
@@ -47,7 +49,9 @@ describe('Loudness edit in the asset list', () => {
     await userEvent.clear(input);
     await userEvent.type(input, '-14');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(fetchSpy.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true));
+    await waitFor(() =>
+      expect(fetchSpy.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true),
+    );
     const call = fetchSpy.mock.calls.find(([, init]) => init?.method === 'PATCH')!;
     expect(JSON.parse(String(call[1]!.body))).toEqual({ loudnessLufs: -14 });
     expect(await screen.findByText('File details saved')).toBeInTheDocument();
@@ -58,7 +62,9 @@ describe('Loudness edit in the asset list', () => {
       [`PATCH /assets/${asset.id}`]: () => jsonResponse({ ...asset, loudnessLufs: -14.2 }),
       [`GET /briefs/${BRIEF_ID}/assets`]: () => jsonResponse({ items: [asset], total: 1 }),
     });
-    renderWithProviders(<AssetList briefId={BRIEF_ID} assets={[asset]} canEdit emptyTitle="None" />);
+    renderWithProviders(
+      <AssetList briefId={BRIEF_ID} assets={[asset]} canEdit emptyTitle="None" />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Edit details/ }));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getByLabelText('Ratio')).toBeInTheDocument();
@@ -76,7 +82,9 @@ describe('Loudness edit in the asset list', () => {
     await userEvent.type(within(dialog).getByLabelText('Licence'), 'Epidemic track 42');
     await userEvent.click(within(dialog).getByLabelText(/AI generated/));
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(fetchSpy.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true));
+    await waitFor(() =>
+      expect(fetchSpy.mock.calls.some(([, init]) => init?.method === 'PATCH')).toBe(true),
+    );
     const call = fetchSpy.mock.calls.find(([, init]) => init?.method === 'PATCH')!;
     expect(JSON.parse(String(call[1]!.body))).toEqual({
       licence: `${asset.licence ?? ''}Epidemic track 42`,
@@ -89,7 +97,9 @@ describe('Loudness edit in the asset list', () => {
 
   it('is read only when editing is not allowed', () => {
     mockFetch({});
-    renderWithProviders(<AssetList briefId={BRIEF_ID} assets={[asset]} canEdit={false} emptyTitle="None" />);
+    renderWithProviders(
+      <AssetList briefId={BRIEF_ID} assets={[asset]} canEdit={false} emptyTitle="None" />,
+    );
     expect(screen.getByText('-11.8 LUFS (target -14)')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Edit loudness/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Edit details/ })).not.toBeInTheDocument();

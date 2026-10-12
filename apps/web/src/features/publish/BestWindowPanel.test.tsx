@@ -17,8 +17,24 @@ describe('BestWindowPanel', () => {
       rule: 'learned',
       text: 'Learned from your own posts, Asia/Kolkata time: Instagram 19:00 to 21:00 (90 value per 1k reach).',
       windows: [
-        { platform: 'instagram', audienceTz: 'Asia/Kolkata', rule: 'learned', startHour: 19, endHour: 21, valuePer1kReach: 90, posts: 8 },
-        { platform: 'linkedin', audienceTz: 'Asia/Kolkata', rule: 'starting', startHour: null, endHour: null, valuePer1kReach: null, posts: 0 },
+        {
+          platform: 'instagram',
+          audienceTz: 'Asia/Kolkata',
+          rule: 'learned',
+          startHour: 19,
+          endHour: 21,
+          valuePer1kReach: 90,
+          posts: 8,
+        },
+        {
+          platform: 'linkedin',
+          audienceTz: 'Asia/Kolkata',
+          rule: 'starting',
+          startHour: null,
+          endHour: null,
+          valuePer1kReach: null,
+          posts: 0,
+        },
       ],
     };
     render(<BestWindowPanel summary={summary} />);

@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { CreateUploadInput, CreateUploadResponse } from '@growth-desk/contract';
-import { formatBytes, formatTimecode, runUpload, UploadAbortedError, type PutTransport, type UploadDeps } from './upload';
+import {
+  formatBytes,
+  formatTimecode,
+  runUpload,
+  UploadAbortedError,
+  type PutTransport,
+  type UploadDeps,
+} from './upload';
 import { makeAsset } from './fixtures.test-util';
 
 const input: CreateUploadInput = {
@@ -12,7 +19,10 @@ const input: CreateUploadInput = {
   sizeBytes: 25,
 };
 
-function deps(upload: CreateUploadResponse['upload'], transport: PutTransport): UploadDeps & {
+function deps(
+  upload: CreateUploadResponse['upload'],
+  transport: PutTransport,
+): UploadDeps & {
   completeUpload: ReturnType<typeof vi.fn>;
   abortUpload: ReturnType<typeof vi.fn>;
 } {
@@ -31,9 +41,21 @@ describe('runUpload', () => {
       onProgress(body.size);
       return { etag: '"e"' };
     });
-    const d = deps({ mode: 'single', url: 'https://s3/put', method: 'PUT', headers: { 'Content-Type': 'video/mp4' }, expiresIn: 900 }, { put });
+    const d = deps(
+      {
+        mode: 'single',
+        url: 'https://s3/put',
+        method: 'PUT',
+        headers: { 'Content-Type': 'video/mp4' },
+        expiresIn: 900,
+      },
+      { put },
+    );
     const progress: number[] = [];
-    const asset = await runUpload(input, new Blob(['x'.repeat(25)]), { deps: d, onProgress: (p) => progress.push(p) });
+    const asset = await runUpload(input, new Blob(['x'.repeat(25)]), {
+      deps: d,
+      onProgress: (p) => progress.push(p),
+    });
     expect(asset.status).toBe('ready');
     expect(put).toHaveBeenCalledTimes(1);
     expect(put.mock.calls[0]![0]).toBe('https://s3/put');
@@ -78,8 +100,18 @@ describe('runUpload', () => {
     const put = vi.fn<PutTransport['put']>(async () => {
       throw new Error('boom');
     });
-    const d = deps({ mode: 'multipart', partSize: 10, parts: [{ partNumber: 1, url: 'https://s3/p1' }], expiresIn: 3600 }, { put });
-    await expect(runUpload(input, new Blob(['x'.repeat(5)]), { deps: d, partAttempts: 2 })).rejects.toThrow('boom');
+    const d = deps(
+      {
+        mode: 'multipart',
+        partSize: 10,
+        parts: [{ partNumber: 1, url: 'https://s3/p1' }],
+        expiresIn: 3600,
+      },
+      { put },
+    );
+    await expect(
+      runUpload(input, new Blob(['x'.repeat(5)]), { deps: d, partAttempts: 2 }),
+    ).rejects.toThrow('boom');
     expect(put).toHaveBeenCalledTimes(2);
     expect(d.abortUpload).toHaveBeenCalledWith(makeAsset().id);
     expect(d.completeUpload).not.toHaveBeenCalled();
@@ -88,8 +120,13 @@ describe('runUpload', () => {
 
   it('fails when storage hides the ETag header', async () => {
     const put = vi.fn<PutTransport['put']>(async () => ({ etag: null }));
-    const d = deps({ mode: 'multipart', partSize: 10, parts: [{ partNumber: 1, url: 'u' }], expiresIn: 1 }, { put });
-    await expect(runUpload(input, new Blob(['x']), { deps: d, partAttempts: 1 })).rejects.toThrow(/ETag/);
+    const d = deps(
+      { mode: 'multipart', partSize: 10, parts: [{ partNumber: 1, url: 'u' }], expiresIn: 1 },
+      { put },
+    );
+    await expect(runUpload(input, new Blob(['x']), { deps: d, partAttempts: 1 })).rejects.toThrow(
+      /ETag/,
+    );
     expect(d.abortUpload).toHaveBeenCalled();
   });
 
@@ -100,7 +137,9 @@ describe('runUpload', () => {
       throw new UploadAbortedError();
     });
     const d = deps({ mode: 'single', url: 'u', method: 'PUT', headers: {}, expiresIn: 1 }, { put });
-    await expect(runUpload(input, new Blob(['x']), { deps: d, signal: controller.signal })).rejects.toBeInstanceOf(UploadAbortedError);
+    await expect(
+      runUpload(input, new Blob(['x']), { deps: d, signal: controller.signal }),
+    ).rejects.toBeInstanceOf(UploadAbortedError);
     expect(d.abortUpload).toHaveBeenCalled();
   });
 });

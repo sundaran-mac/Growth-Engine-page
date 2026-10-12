@@ -12,10 +12,10 @@ import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { LogoMark } from '@/components/atoms/LogoMark';
 import { Field } from '@/components/molecules/Field';
+import { FadeIn } from '@/components/motion';
 import { isApiError } from '@/lib/api';
 import { useLogin } from '@/lib/auth';
 import { useSessionStore } from '@/stores/session';
-
 
 /** Only allow in-app paths as the return target (blocks open redirects). */
 function safeNext(raw: string | null): string {
@@ -25,7 +25,8 @@ function safeNext(raw: string | null): string {
 
 function loginErrorText(error: unknown): string {
   if (!isApiError(error)) return 'Could not sign in. Please try again.';
-  if (error.code === 'INVALID_CREDENTIALS' || error.status === 401 || error.status === 400) return 'Email or password is wrong.';
+  if (error.code === 'INVALID_CREDENTIALS' || error.status === 401 || error.status === 400)
+    return 'Email or password is wrong.';
   if (error.status === 429) return 'Too many tries. Wait a minute, then try again.';
   if (error.status === 403) return error.detail ?? 'This account cannot sign in.';
   return error.detail ?? error.title;
@@ -43,7 +44,10 @@ export default function LoginPage() {
     handleSubmit,
     setFocus,
     formState: { errors },
-  } = useForm<LoginRequest>({ resolver: zodResolver(loginRequestSchema), defaultValues: { email: '', password: '' } });
+  } = useForm<LoginRequest>({
+    resolver: zodResolver(loginRequestSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
   React.useEffect(() => {
     document.title = 'Sign in · Growth Desk';
@@ -58,18 +62,27 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-[400px]">
-      <div className="mb-8 flex items-center gap-3 lg:hidden">
+      <FadeIn className="mb-8 flex items-center gap-3 lg:hidden">
         <LogoMark />
-        <span className="text-17 font-bold">Growth Desk</span>
-      </div>
-      <div className="rounded-card border border-hairline bg-surface-card p-8">
-        <h1 className="text-2xl font-bold text-ink">Sign in</h1>
+        <div className="flex flex-col">
+          <span className="text-17 font-bold">Growth Desk</span>
+          <span className="text-2xs text-muted">Humini ecosystem</span>
+        </div>
+      </FadeIn>
+      <FadeIn
+        delay={0.05}
+        className="rounded-card border border-hairline bg-surface-card p-8 shadow-[0_24px_48px_-28px_rgba(26,23,20,0.22)]"
+      >
+        <p className="text-xs font-semibold uppercase tracking-kicker text-joy-text">
+          Welcome back
+        </p>
+        <h1 className="mt-1 text-2xl font-bold text-ink">Sign in</h1>
         <p className="mt-1 text-sm text-muted">Use your Arus work email.</p>
 
         {login.isError ? (
           <div
             role="alert"
-            className="mt-6 flex items-start gap-2.5 rounded-tile bg-danger-soft px-3.5 py-3 text-13 font-medium text-danger-text"
+            className="mt-6 flex items-start gap-2.5 rounded-tile bg-danger-soft px-3.5 py-3 text-13 font-medium text-danger-text duration-200 animate-in fade-in-0 slide-in-from-top-1"
           >
             <Warning size={18} className="mt-px shrink-0" aria-hidden="true" />
             {loginErrorText(login.error)}
@@ -87,8 +100,10 @@ export default function LoginPage() {
             Sign in
           </Button>
         </form>
-      </div>
-      <p className="mt-6 text-center text-xs text-muted">Forgot your password? Ask your Growth Desk admin to reset it.</p>
+      </FadeIn>
+      <p className="mt-6 text-center text-xs text-muted duration-300 animate-in fade-in-0 fill-mode-both [animation-delay:150ms]">
+        Forgot your password? Ask your Growth Desk admin to reset it.
+      </p>
     </div>
   );
 }

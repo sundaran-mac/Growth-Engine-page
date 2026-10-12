@@ -14,6 +14,7 @@ import { ProductDot } from '@/components/molecules/ProductDot';
 import { StatTile } from '@/components/molecules/StatTile';
 import { Panel } from '@/components/organisms/Panel';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Stagger, StaggerItem } from '@/components/motion';
 import {
   compactNumber,
   dayTimeInZone,
@@ -32,35 +33,44 @@ export function HomeStats({ data, loading }: { data: Dashboard | undefined; load
   const tone = (pct: number | null) =>
     pct !== null && pct < 0 ? 'danger' : pct === null ? 'muted' : 'joy';
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <StatTile
-        label="Reach · 7 days"
-        loading={loading}
-        value={s ? compactNumber(s.reach7d.value) : '-'}
-        delta={s ? deltaText(s.reach7d.deltaPct) : undefined}
-        deltaTone={tone(s?.reach7d.deltaPct ?? null)}
-      />
-      <StatTile
-        label="Saves + shares"
-        loading={loading}
-        value={s ? compactNumber(s.savesShares7d.value) : '-'}
-        delta={s ? deltaText(s.savesShares7d.deltaPct) : undefined}
-        deltaTone={tone(s?.savesShares7d.deltaPct ?? null)}
-      />
-      <StatTile
-        label="Installs (UTM)"
-        loading={loading}
-        value={s ? compactNumber(s.installs7d.value) : '-'}
-        delta={s ? deltaText(s.installs7d.deltaPct) : undefined}
-        deltaTone={tone(s?.installs7d.deltaPct ?? null)}
-      />
-      <StatTile
-        label="Open partner leads"
-        loading={loading}
-        value={s ? s.openLeads.value.toLocaleString('en-US') : '-'}
-        delta={s ? `${s.openLeads.newThisWeek} new this week` : undefined}
-      />
-    </div>
+    // Figma: four 240px tiles, 16px apart, left aligned (they shrink on a laptop).
+    <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,240px))]">
+      <StaggerItem>
+        <StatTile
+          label="Reach · 7 days"
+          loading={loading}
+          value={s ? compactNumber(s.reach7d.value) : '-'}
+          delta={s ? deltaText(s.reach7d.deltaPct) : undefined}
+          deltaTone={tone(s?.reach7d.deltaPct ?? null)}
+        />
+      </StaggerItem>
+      <StaggerItem>
+        <StatTile
+          label="Saves + shares"
+          loading={loading}
+          value={s ? compactNumber(s.savesShares7d.value) : '-'}
+          delta={s ? deltaText(s.savesShares7d.deltaPct) : undefined}
+          deltaTone={tone(s?.savesShares7d.deltaPct ?? null)}
+        />
+      </StaggerItem>
+      <StaggerItem>
+        <StatTile
+          label="Installs (UTM)"
+          loading={loading}
+          value={s ? compactNumber(s.installs7d.value) : '-'}
+          delta={s ? deltaText(s.installs7d.deltaPct) : undefined}
+          deltaTone={tone(s?.installs7d.deltaPct ?? null)}
+        />
+      </StaggerItem>
+      <StaggerItem>
+        <StatTile
+          label="Open partner leads"
+          loading={loading}
+          value={s ? s.openLeads.value.toLocaleString('en-US') : '-'}
+          delta={s ? `${s.openLeads.newThisWeek} new this week` : undefined}
+        />
+      </StaggerItem>
+    </Stagger>
   );
 }
 
@@ -86,25 +96,25 @@ export function NeedsYouPanel({ items }: { items: Dashboard['needsYou'] }) {
           Nothing is waiting on you. Nice.
         </p>
       ) : (
-        <ul className="flex flex-col">
+        <Stagger as="ul" className="flex flex-col">
           {items.map((item) => {
             const action = NEEDS_ACTION[item.kind];
             return (
-              <ListRow
-                as="li"
-                key={item.id}
-                icon={NEEDS_ICON[item.kind]}
-                title={item.title}
-                meta={item.since ? `${item.meta} · ${waitingFor(item.since)}` : item.meta}
-                action={
-                  <Button asChild variant={action.primary ? 'primary' : 'secondary'}>
-                    <Link to={item.link}>{action.label}</Link>
-                  </Button>
-                }
-              />
+              <StaggerItem as="li" key={item.id}>
+                <ListRow
+                  icon={NEEDS_ICON[item.kind]}
+                  title={item.title}
+                  meta={item.since ? `${item.meta} · ${waitingFor(item.since)}` : item.meta}
+                  action={
+                    <Button asChild variant={action.primary ? 'primary' : 'secondary'}>
+                      <Link to={item.link}>{action.label}</Link>
+                    </Button>
+                  }
+                />
+              </StaggerItem>
             );
           })}
-        </ul>
+        </Stagger>
       )}
     </Panel>
   );
@@ -133,23 +143,16 @@ function deliveryChip(p: Dashboard['goingOutToday'][number]) {
 
 export function GoingOutTodayPanel({ posts }: { posts: Dashboard['goingOutToday'] }) {
   return (
-    <Panel
-      title="Going out today"
-      actions={
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/publish">Publish</Link>
-        </Button>
-      }
-    >
+    <Panel title="Going out today">
       {posts.length === 0 ? (
         <p className="py-2 text-sm text-muted">Nothing is scheduled for today.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <Stagger as="ul" className="flex flex-col gap-3">
           {posts.map((p) => (
-            <li key={p.postId}>
+            <StaggerItem as="li" key={p.postId}>
               <Link
                 to={`/publish/${p.briefId}`}
-                className="focus-ring -mx-2 flex items-center gap-3.5 rounded-md px-2 py-0.5 hover:bg-surface-sunken/60"
+                className="focus-ring -mx-2 flex items-center gap-3.5 rounded-md px-2 hover:bg-surface-sunken/60"
               >
                 <span className="w-24 shrink-0 text-13 font-semibold text-muted">
                   {timeInZone(p.scheduledAt, p.audienceTz)}
@@ -164,9 +167,9 @@ export function GoingOutTodayPanel({ posts }: { posts: Dashboard['goingOutToday'
                 </span>
                 {deliveryChip(p)}
               </Link>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       )}
     </Panel>
   );
@@ -267,17 +270,11 @@ const PIPELINE_TILES = [
 
 export function PipelinePanel({ pipeline }: { pipeline: Dashboard['pipeline'] }) {
   return (
-    <Panel
-      title="Sales pipeline"
-      actions={
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/sales">Open</Link>
-        </Button>
-      }
-    >
-      <ul className="grid grid-cols-4 gap-2">
+    <Panel title="Sales pipeline">
+      {/* Figma: four 76px tiles, 8px apart. */}
+      <ul className="flex flex-wrap gap-2">
         {PIPELINE_TILES.map(([key, label]) => (
-          <li key={key}>
+          <li key={key} className="w-[76px]">
             <Link
               to="/sales"
               aria-label={`${pipeline[key]} ${label}`}

@@ -5,10 +5,11 @@ import { cn } from '@/lib/utils';
 
 /**
  * Base button (shadcn/ui shape) with the Growth Desk variants from the Figma kit (237:674).
+ * Every variant eases its colours (150 ms) and presses in a little on tap (scale 0.98).
  * Prefer the atom `@/components/atoms/Button` in screens; it adds icons and a loading state.
  */
 export const buttonVariants = cva(
-  'focus-ring inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-pill font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  'focus-ring inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-pill font-semibold transition-[color,background-color,border-color,box-shadow,filter,transform] duration-150 ease-out motion-safe:active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -17,7 +18,7 @@ export const buttonVariants = cva(
         secondary: 'border-[1.5px] border-strong bg-surface-card text-ink hover:bg-surface-sunken',
         ghost: 'text-ink hover:bg-surface-sunken',
         danger: 'bg-danger text-white hover:bg-danger-text',
-        link: 'h-auto rounded-sm px-0 py-0 text-ink underline-offset-4 hover:underline',
+        link: 'h-auto motion-safe:active:scale-100 rounded-sm px-0 py-0 text-ink underline-offset-4 hover:underline',
       },
       size: {
         sm: 'h-9 px-4 text-13',
@@ -32,8 +33,7 @@ export const buttonVariants = cva(
 );
 
 export interface ButtonBaseProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

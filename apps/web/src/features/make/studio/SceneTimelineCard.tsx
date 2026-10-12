@@ -26,7 +26,9 @@ export function SceneTimelineCard({ brief, master }: SceneTimelineCardProps) {
       title={
         <span className="text-base">
           Scene timeline · {seconds} s
-          {timeline.estimated ? <span className="ml-2 text-xs font-medium text-muted">estimated</span> : null}
+          {timeline.estimated ? (
+            <span className="ml-2 text-xs font-medium text-muted">estimated</span>
+          ) : null}
         </span>
       }
     >
@@ -38,10 +40,16 @@ export function SceneTimelineCard({ brief, master }: SceneTimelineCardProps) {
               {lane.segments.map((seg) => (
                 <div
                   key={seg.key}
-                  title={seg.detail ?? `${seg.label} · ${formatTimecode(seg.startMs)} to ${formatTimecode(seg.endMs)}`}
+                  title={
+                    seg.detail ??
+                    `${seg.label} · ${formatTimecode(seg.startMs)} to ${formatTimecode(seg.endMs)}`
+                  }
                   aria-label={`${lane.label}: ${seg.label}, ${formatTimecode(seg.startMs)} to ${formatTimecode(seg.endMs)}`}
                   role="img"
-                  className={cn('absolute top-0 h-[30px] overflow-hidden rounded-sm', toneClass[seg.tone])}
+                  className={cn(
+                    'absolute top-0 h-[30px] overflow-hidden rounded-sm',
+                    toneClass[seg.tone],
+                  )}
                   style={{ left: `${seg.start * 100}%`, width: `${seg.width * 100}%` }}
                 >
                   <span className="absolute left-2 top-2 whitespace-nowrap text-[10px] font-semibold leading-[1.4] text-ink">

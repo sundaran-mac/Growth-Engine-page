@@ -1,10 +1,12 @@
 // Ideas board. Figma frame 240:847. Owned by the IDEAS module.
 import { Lightbulb, Plus, Stack } from '@phosphor-icons/react';
+import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import * as React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { CONTENT_MODES, CONTENT_MODE_LABELS, type ContentMode, type Idea, type IdeaStatus } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
+import { DURATION, EASE, fadeUp } from '@/components/motion';
 import { ConfirmDialog } from '@/components/molecules/ConfirmDialog';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState, errorMessage } from '@/components/molecules/ErrorState';
@@ -36,6 +38,9 @@ const COLUMNS: { status: IdeaStatus; label: string; empty: string }[] = [
   { status: 'briefed', label: 'Briefed', empty: 'Open a starred idea as a brief.' },
   { status: 'parked', label: 'Parked', empty: 'Nothing parked.' },
 ];
+
+/** Cards across the four columns ease in one after another on first load. */
+const BOARD_STAGGER = { hidden: {}, show: { transition: { staggerChildren: 0.04, delayChildren: 0.02 } } };
 
 function isMode(v: string | null): v is ContentMode {
   return v !== null && (CONTENT_MODES as readonly string[]).includes(v);
@@ -154,7 +159,7 @@ export default function IdeasPage() {
       {board.data?.weeklyProposal ? <WeeklyProposalBanner proposal={board.data.weeklyProposal} /> : null}
       <ModeFilter value={mode} onChange={setMode} />
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_312px]">
+      <div className="grid grid-cols-1 items-start gap-5 min-[1400px]:grid-cols-[minmax(0,1fr)_312px]">
         <div className="min-w-0">
           {ideas.isPending || productsLoading ? (
             <BoardSkeleton />
@@ -174,23 +179,38 @@ export default function IdeasPage() {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <LayoutGroup>
+            <motion.div
+              className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-4"
+              initial="hidden"
+              animate="show"
+              variants={BOARD_STAGGER}
+            >
               {columns.map((col) => (
                 <section
                   key={col.status}
                   aria-label={`${col.label}, ${col.items.length}`}
                   className="flex min-w-0 flex-col gap-2.5 rounded-[16px] bg-surface-sunken p-3"
                 >
-                  <h2 className="flex items-center gap-1.5 text-2xs">
+                  <h2 className="flex items-center gap-1.5 whitespace-nowrap text-2xs">
                     <span className="font-semibold uppercase tracking-[0.08em] text-muted">{col.label}</span>
                     <span className="font-bold text-joy-text">{col.items.length}</span>
                   </h2>
                   {col.items.length === 0 ? (
                     <p className="px-1 pb-1 text-2xs text-muted">{col.empty}</p>
-                  ) : (
-                    <ul className="flex flex-col gap-2.5">
+                  ) : null}
+                  {/* Cards ease in one after another; when starred, parked or briefed they glide to the new column. */}
+                  <ul className={cn('flex flex-col gap-2.5', col.items.length === 0 && 'hidden')}>
+                    <AnimatePresence>
                       {col.items.map((idea) => (
-                        <li key={idea.id}>
+                        <motion.li
+                          key={idea.id}
+                          layoutId={`idea-${idea.id}`}
+                          layout="position"
+                          variants={fadeUp}
+                          exit={{ opacity: 0, scale: 0.97, transition: { duration: DURATION.fast, ease: EASE } }}
+                          transition={{ layout: { duration: DURATION.slow, ease: EASE } }}
+                        >
                           <IdeaCard
                             idea={idea}
                             canWrite={perms.canWrite}
@@ -219,17 +239,18 @@ export default function IdeasPage() {
                             }}
                             onDelete={(i) => setDeleting(i)}
                           />
-                        </li>
+                        </motion.li>
                       ))}
-                    </ul>
-                  )}
+                    </AnimatePresence>
+                  </ul>
                 </section>
               ))}
-            </div>
+            </motion.div>
+            </LayoutGroup>
           )}
         </div>
 
-        <div ref={panelRef} className="scroll-mt-6">
+        <div ref={panelRef} className="w-full max-w-[560px] scroll-mt-6 min-[1400px]:max-w-none">
           {productId ? (
             <GeneratePanel
               key={productId}

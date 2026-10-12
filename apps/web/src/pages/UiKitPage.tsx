@@ -70,17 +70,49 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/sonner';
 import { ApiError } from '@/lib/api';
 
 const ICONS = [
-  HouseSimple, Stack, Lightbulb, CalendarBlank, NotePencil, FilmStrip, Eye, SealCheck, PaperPlaneTilt,
-  ChartLineUp, Handshake, PlugsConnected, MagnifyingGlass, Bell, Plus, Sparkle, Check, X, ArrowRight,
-  InstagramLogo, FacebookLogo, YoutubeLogo, LinkedinLogo, WhatsappLogo, Heart, ChatCircle, User, Users,
-  Clock, Warning,
+  HouseSimple,
+  Stack,
+  Lightbulb,
+  CalendarBlank,
+  NotePencil,
+  FilmStrip,
+  Eye,
+  SealCheck,
+  PaperPlaneTilt,
+  ChartLineUp,
+  Handshake,
+  PlugsConnected,
+  MagnifyingGlass,
+  Bell,
+  Plus,
+  Sparkle,
+  Check,
+  X,
+  ArrowRight,
+  InstagramLogo,
+  FacebookLogo,
+  YoutubeLogo,
+  LinkedinLogo,
+  WhatsappLogo,
+  Heart,
+  ChatCircle,
+  User,
+  Users,
+  Clock,
+  Warning,
 ];
 
 interface ChannelRow {
@@ -92,9 +124,30 @@ interface ChannelRow {
   tone: 'scheduled' | 'reminder' | 'neutral';
 }
 const ROWS: ChannelRow[] = [
-  { id: '1', channel: 'Instagram Reel', format: '9:16 · 58 s', when: 'Thu 7:30 pm IST', how: 'Auto · Meta API', tone: 'scheduled' },
-  { id: '2', channel: 'LinkedIn · Elan', format: '4:5 native', when: 'Tue 8:30 am IST', how: 'Needs API approval', tone: 'neutral' },
-  { id: '3', channel: 'WhatsApp Channel', format: '9:16 file', when: 'Thu 9:00 pm IST', how: 'Reminder · by hand', tone: 'reminder' },
+  {
+    id: '1',
+    channel: 'Instagram Reel',
+    format: '9:16 · 58 s',
+    when: 'Thu 7:30 pm IST',
+    how: 'Auto · Meta API',
+    tone: 'scheduled',
+  },
+  {
+    id: '2',
+    channel: 'LinkedIn · Elan',
+    format: '4:5 native',
+    when: 'Tue 8:30 am IST',
+    how: 'Needs API approval',
+    tone: 'neutral',
+  },
+  {
+    id: '3',
+    channel: 'WhatsApp Channel',
+    format: '9:16 file',
+    when: 'Thu 9:00 pm IST',
+    how: 'Reminder · by hand',
+    tone: 'reminder',
+  },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -108,7 +161,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function UiKitPage() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   return (
-    <Page title="Component kit" subtitle="Dev only · mirrors Figma 237:674" actions={<Button leftIcon={Plus}>New idea</Button>}>
+    <Page
+      title="Component kit"
+      subtitle="Dev only · mirrors Figma 237:674"
+      actions={<Button leftIcon={Plus}>New idea</Button>}
+    >
       <Kicker tone="joy">Growth Desk · component kit</Kicker>
 
       <Section title="Icons (Phosphor, 24px)">
@@ -171,7 +228,12 @@ export default function UiKitPage() {
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatTile label="Reach · 7 days" value="48.2k" delta="+12% vs last week" />
         <StatTile label="Installs" value="214" delta="+8% vs last week" deltaTone="care" />
-        <StatTile label="Value / 1k reach" value="86" delta="Best: founder films" deltaTone="muted" />
+        <StatTile
+          label="Value / 1k reach"
+          value="86"
+          delta="Best: founder films"
+          deltaTone="muted"
+        />
         <StatTile label="Loading" value="0" loading />
       </div>
 
@@ -190,7 +252,11 @@ export default function UiKitPage() {
             action={<Button variant="secondary">Open plan</Button>}
           />
         </Panel>
-        <Panel tone="dark" title="Claude this week" titleIcon={<Icon icon={Sparkle} className="text-joy" />}>
+        <Panel
+          tone="dark"
+          title="Claude this week"
+          titleIcon={<Icon icon={Sparkle} className="text-joy" />}
+        >
           <p className="text-sm">16 new ideas drafted: 10 for Live, 6 for Pulse.</p>
           <div>
             <Button rightIcon={ArrowRight}>Open ideas</Button>
@@ -199,7 +265,15 @@ export default function UiKitPage() {
       </div>
 
       <Panel title="Form controls">
-        <PageHeader title="Section header" description="PageHeader inside content" actions={<Button size="sm" variant="secondary">Action</Button>} />
+        <PageHeader
+          title="Section header"
+          description="PageHeader inside content"
+          actions={
+            <Button size="sm" variant="secondary">
+              Action
+            </Button>
+          }
+        />
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Hook" hint="0 to 2 seconds" required>
             <Input placeholder="You are not a bad friend." />
@@ -274,10 +348,18 @@ export default function UiKitPage() {
           <Button variant="dark" onClick={() => setConfirmOpen(true)}>
             Request changes
           </Button>
-          <Button variant="ghost" onClick={() => toast.success('Saved', { description: 'Brief frozen.' })}>
+          <Button
+            variant="ghost"
+            onClick={() => toast.success('Saved', { description: 'Brief frozen.' })}
+          >
             Success toast
           </Button>
-          <Button variant="ghost" onClick={() => toast.error('Something went wrong', { description: 'Please try again.' })}>
+          <Button
+            variant="ghost"
+            onClick={() =>
+              toast.error('Something went wrong', { description: 'Please try again.' })
+            }
+          >
             Error toast
           </Button>
         </div>
@@ -291,27 +373,74 @@ export default function UiKitPage() {
         />
       </Panel>
 
-      <Panel title="Data table" flush>
-        <div className="px-6 pb-6">
-          <DataTable
-            caption="Channels for REEL-031"
-            rows={ROWS}
-            getRowId={(r) => r.id}
-            onRowClick={(r) => toast(`${r.channel} clicked`)}
-            columns={[
-              { id: 'channel', header: 'Channel', cell: (r) => <span className="font-semibold">{r.channel}</span> },
-              { id: 'format', header: 'Format', cell: (r) => r.format },
-              { id: 'when', header: 'When (audience time)', cell: (r) => r.when },
-              { id: 'how', header: 'How', align: 'right', cell: (r) => <StatusChip tone={r.tone}>{r.how}</StatusChip> },
-            ]}
-          />
-        </div>
+      <Panel title="Data table" flush className="pb-2">
+        <DataTable
+          caption="Channels for REEL-031"
+          rows={ROWS}
+          getRowId={(r) => r.id}
+          onRowClick={(r) => toast(`${r.channel} clicked`)}
+          columns={[
+            {
+              id: 'channel',
+              header: 'Channel',
+              cell: (r) => <span className="font-semibold">{r.channel}</span>,
+            },
+            { id: 'format', header: 'Format', cell: (r) => r.format },
+            { id: 'when', header: 'When (audience time)', cell: (r) => r.when },
+            {
+              id: 'how',
+              header: 'How',
+              align: 'right',
+              cell: (r) => <StatusChip tone={r.tone}>{r.how}</StatusChip>,
+            },
+          ]}
+        />
+      </Panel>
+
+      <Panel
+        title="Data table · Figma look, rows stagger in"
+        description="Publish frame 242:1131: sunken header strip, rows ease in one after another."
+      >
+        <DataTable
+          look="figma"
+          stagger
+          caption="Channels for REEL-031 (Figma look)"
+          rows={ROWS}
+          getRowId={(r) => r.id}
+          onRowClick={(r) => toast(`${r.channel} clicked`)}
+          columns={[
+            {
+              id: 'channel',
+              header: 'Channel',
+              cell: (r) => <span className="font-semibold">{r.channel}</span>,
+            },
+            { id: 'format', header: 'Format', cell: (r) => r.format },
+            { id: 'when', header: 'When (audience time)', cell: (r) => r.when },
+            {
+              id: 'how',
+              header: 'How',
+              align: 'right',
+              cell: (r) => <StatusChip tone={r.tone}>{r.how}</StatusChip>,
+            },
+          ]}
+        />
       </Panel>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <EmptyState title="Being built" description="This screen is being built." action={<Button variant="secondary">Back home</Button>} />
+        <EmptyState
+          title="Being built"
+          description="This screen is being built."
+          action={<Button variant="secondary">Back home</Button>}
+        />
         <ErrorState
-          error={new ApiError({ status: 503, code: 'HTTP_503', title: 'Service not available', detail: 'Please try again in a moment.' })}
+          error={
+            new ApiError({
+              status: 503,
+              code: 'HTTP_503',
+              title: 'Service not available',
+              detail: 'Please try again in a moment.',
+            })
+          }
           onRetry={() => toast('Retrying')}
         />
       </div>

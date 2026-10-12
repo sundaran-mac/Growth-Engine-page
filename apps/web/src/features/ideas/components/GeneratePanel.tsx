@@ -1,4 +1,5 @@
 import { PlugsConnected, Sparkle } from '@phosphor-icons/react';
+import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -14,6 +15,7 @@ import {
 } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
+import { DURATION, EASE, fadeUp } from '@/components/motion';
 import { errorMessage } from '@/components/molecules/ErrorState';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isApiError } from '@/lib/api';
@@ -88,17 +90,29 @@ export function GeneratePanel({ products, productId, board, canWrite, onGenerate
   const disabled = !canWrite || notConnected || capReached || channels.length === 0;
 
   return (
-    <section
+    <motion.section
       aria-labelledby={`${ids}-title`}
       className="flex w-full flex-col gap-3 rounded-card bg-media-canvas p-6 text-media-text"
+      initial="hidden"
+      animate="show"
+      variants={fadeUp}
     >
       <h2 id={`${ids}-title`} className="flex items-center gap-2.5 text-17 font-bold">
         <Icon icon={Sparkle} size={20} className="text-joy" />
         Generate with Claude
       </h2>
 
+      <AnimatePresence initial={false}>
       {notConnected ? (
-        <div role="status" className="flex flex-col gap-2 rounded-tile bg-white/10 p-3.5 text-13">
+        <motion.div
+          key="not-connected"
+          role="status"
+          className="flex flex-col gap-2 overflow-hidden rounded-tile bg-white/10 p-3.5 text-13"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: DURATION.base, ease: EASE }}
+        >
           <p className="flex items-center gap-2 font-semibold">
             <Icon icon={PlugsConnected} size={16} /> Claude not connected
           </p>
@@ -106,19 +120,28 @@ export function GeneratePanel({ products, productId, board, canWrite, onGenerate
           <Link to="/integrations" className="focus-ring-dark w-fit rounded-sm font-semibold text-joy underline-offset-2 hover:underline">
             Open Integrations
           </Link>
-        </div>
+        </motion.div>
       ) : null}
 
       {!notConnected && capReached ? (
-        <p role="status" className="rounded-tile bg-white/10 p-3.5 text-13">
+        <motion.p
+          key="cap"
+          role="status"
+          className="overflow-hidden rounded-tile bg-white/10 p-3.5 text-13"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: DURATION.base, ease: EASE }}
+        >
           This product used its Claude budget for this month. Ask an admin to raise the cap in Settings.
-        </p>
+        </motion.p>
       ) : null}
+      </AnimatePresence>
 
       <form onSubmit={submit} className="flex flex-col gap-3" aria-describedby={`${ids}-reads`}>
         <Label htmlFor={`${ids}-product`}>Product</Label>
         <Select value={targetId} onValueChange={setTargetId} disabled={!canWrite}>
-          <SelectTrigger id={`${ids}-product`} className="rounded-[10px] border-0 font-medium">
+          <SelectTrigger id={`${ids}-product`} className="h-10 rounded-[10px] border-0 font-medium">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -132,7 +155,7 @@ export function GeneratePanel({ products, productId, board, canWrite, onGenerate
 
         <Label htmlFor={`${ids}-mode`}>Mode</Label>
         <Select value={mode} onValueChange={(v) => setMode(v as ContentMode | typeof ANY)} disabled={!canWrite}>
-          <SelectTrigger id={`${ids}-mode`} className="rounded-[10px] border-0 font-medium">
+          <SelectTrigger id={`${ids}-mode`} className="h-10 rounded-[10px] border-0 font-medium">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -168,11 +191,24 @@ export function GeneratePanel({ products, productId, board, canWrite, onGenerate
             );
           })}
         </div>
-        {channels.length === 0 ? <p className="text-xs text-joy">Pick at least one channel.</p> : null}
+        <AnimatePresence initial={false}>
+          {channels.length === 0 ? (
+            <motion.p
+              key="no-channel"
+              className="text-xs text-joy"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: DURATION.fast, ease: EASE }}
+            >
+              Pick at least one channel.
+            </motion.p>
+          ) : null}
+        </AnimatePresence>
 
         <Label htmlFor={`${ids}-count`}>How many</Label>
         <Select value={String(count)} onValueChange={(v) => setCount(Number(v))} disabled={!canWrite}>
-          <SelectTrigger id={`${ids}-count`} className="rounded-[10px] border-0 font-medium">
+          <SelectTrigger id={`${ids}-count`} className="h-10 rounded-[10px] border-0 font-medium">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -199,6 +235,6 @@ export function GeneratePanel({ products, productId, board, canWrite, onGenerate
           {generate.isPending ? 'Claude is writing' : count === 1 ? 'Generate 1 idea' : `Generate ${count} ideas`}
         </Button>
       </form>
-    </section>
+    </motion.section>
   );
 }

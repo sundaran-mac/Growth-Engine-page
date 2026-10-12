@@ -1,10 +1,11 @@
 /**
  * /studio with no brief: pick a brief that is ready to make.
- * Placeholder design (no Figma frame); built in the house style with the shared kit.
+ * No Figma frame: same panel, table and chips as the Review list and the Briefs list, so the
+ * three lists read as one family (same stage chip colours, muted mode column).
  */
 import { FilmSlate } from '@phosphor-icons/react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BRIEF_STAGE_LABELS, CONTENT_MODE_LABELS, type Brief } from '@growth-desk/contract';
+import { BRIEF_STAGE_LABELS, type Brief } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { EmptyState } from '@/components/molecules/EmptyState';
@@ -13,15 +14,26 @@ import { Panel } from '@/components/organisms/Panel';
 import { Page } from '@/components/templates/Page';
 import { useSelectedProduct } from '@/lib/use-selected-product';
 import { useBriefs } from '../api';
+import { modeLabel, STAGE_TONES } from '../brief/labels';
 
 const columns: DataTableColumn<Brief>[] = [
-  { id: 'code', header: 'CODE', cell: (b) => <span className="font-semibold text-ink">{b.code}</span>, className: 'w-[120px]' },
+  {
+    id: 'code',
+    header: 'CODE',
+    cell: (b) => <span className="font-semibold text-ink">{b.code}</span>,
+    className: 'w-[120px]',
+  },
   { id: 'title', header: 'PIECE', cell: (b) => <span className="text-ink">{b.title}</span> },
-  { id: 'mode', header: 'MODE', cell: (b) => `${b.mode} ${CONTENT_MODE_LABELS[b.mode]}` },
+  {
+    id: 'mode',
+    header: 'MODE',
+    cell: (b) => modeLabel(b.mode),
+    className: 'whitespace-nowrap text-muted',
+  },
   {
     id: 'stage',
     header: 'STAGE',
-    cell: (b) => <StatusChip tone={b.stage === 'made' ? 'care' : 'joy'}>{BRIEF_STAGE_LABELS[b.stage]}</StatusChip>,
+    cell: (b) => <StatusChip tone={STAGE_TONES[b.stage]}>{BRIEF_STAGE_LABELS[b.stage]}</StatusChip>,
   },
   { id: 'owner', header: 'OWNER', cell: (b) => b.owner?.name ?? 'Not set' },
 ];
@@ -36,7 +48,9 @@ export function StudioPicker() {
       <Panel
         flush
         title="Ready to make"
-        description={product ? `Frozen and made briefs for ${product.name}` : 'Frozen and made briefs'}
+        description={
+          product ? `Frozen and made briefs for ${product.name}` : 'Frozen and made briefs'
+        }
       >
         <DataTable
           caption="Briefs ready to make"

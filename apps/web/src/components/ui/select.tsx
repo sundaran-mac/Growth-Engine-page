@@ -36,8 +36,9 @@ export const SelectContent = React.forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        'relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-hidden rounded-tile border border-hairline bg-surface-card text-ink shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        position === 'popper' && 'w-full min-w-[var(--radix-select-trigger-width)] data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
+        'relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-hidden rounded-tile border border-hairline bg-surface-card text-ink shadow-overlay data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 duration-150 ease-out',
+        position === 'popper' &&
+          'w-full min-w-[var(--radix-select-trigger-width)] data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
         className,
       )}
       {...props}
@@ -58,7 +59,14 @@ export const SelectLabel = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label ref={ref} className={cn('px-2.5 py-1.5 text-2xs font-semibold uppercase tracking-group text-muted', className)} {...props} />
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn(
+      'px-2.5 py-1.5 text-2xs font-semibold uppercase tracking-group text-muted',
+      className,
+    )}
+    {...props}
+  />
 ));
 SelectLabel.displayName = 'SelectLabel';
 
@@ -88,6 +96,10 @@ export const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator ref={ref} className={cn('-mx-1.5 my-1.5 h-px bg-hairline', className)} {...props} />
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn('-mx-1.5 my-1.5 h-px bg-hairline', className)}
+    {...props}
+  />
 ));
 SelectSeparator.displayName = 'SelectSeparator';

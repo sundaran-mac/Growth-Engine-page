@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { LogoMark } from '@/components/atoms/LogoMark';
 import { Spinner } from '@/components/atoms/Spinner';
+import { Stagger, StaggerItem } from '@/components/motion';
 
 /**
  * PLACEHOLDER DESIGN: there is no Figma frame for sign in. Built in the same design language
@@ -18,13 +19,33 @@ export function AuthLayout() {
             <span className="text-2xs text-muted">Humini ecosystem</span>
           </div>
         </div>
-        <div className="flex max-w-md flex-col gap-4">
-          <p className="text-xs font-semibold uppercase tracking-kicker text-joy">Plan · Make · Ship · Learn</p>
-          <p className="text-2xl font-bold">Claude drafts. People decide. Tools do the repeating.</p>
-          <p className="text-sm text-media-text/70">
-            One place to plan, make, approve, publish, measure and sell, for every Humini product.
-          </p>
-        </div>
+        <Stagger className="flex max-w-md flex-col gap-4">
+          <StaggerItem as="div">
+            <p className="text-xs font-semibold uppercase tracking-kicker text-joy">
+              Plan · Make · Ship · Learn
+            </p>
+          </StaggerItem>
+          <StaggerItem as="div">
+            <p className="text-2xl font-bold">
+              Claude drafts. People decide. Tools do the repeating.
+            </p>
+          </StaggerItem>
+          <StaggerItem as="div">
+            <p className="text-sm text-media-text/70">
+              One place to plan, make, approve, publish, measure and sell, for every Humini product.
+            </p>
+          </StaggerItem>
+          <StaggerItem as="div" className="mt-2 flex flex-wrap gap-2">
+            {['Ideas', 'Briefs', 'Approvals', 'Publish', 'Analytics'].map((label) => (
+              <span
+                key={label}
+                className="rounded-pill border border-white/10 px-3 py-1 text-2xs font-semibold text-media-text/80"
+              >
+                {label}
+              </span>
+            ))}
+          </StaggerItem>
+        </Stagger>
         <p className="text-2xs text-muted">Nothing goes public without both approvals.</p>
       </aside>
       <main className="flex items-center justify-center px-6 py-12">

@@ -104,14 +104,14 @@ export function TeamPanel() {
       ) : team.isError ? (
         <ErrorState error={team.error} onRetry={() => void team.refetch()} />
       ) : (
-        <ul className="flex flex-wrap gap-x-6 gap-y-4">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {team.data.items.map((p) => {
             const body = (
               <>
                 <Avatar name={p.name} initials={p.initials} />
                 <span className="flex min-w-0 flex-col text-left">
                   <span className="truncate text-13 font-semibold text-ink">{p.name}</span>
-                  <span className="truncate text-xs text-muted">{personLine(p)}</span>
+                  <span className="truncate text-2xs text-muted">{personLine(p)}</span>
                 </span>
               </>
             );

@@ -2,18 +2,15 @@
  * Studio for one brief (Figma 241:990): preview, scene timeline, render jobs, hand-offs, uploads.
  */
 import { ArrowRight, CloudArrowUp } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  isBriefMaking,
-  LANGUAGE_LABELS,
-  type AssetKind,
-  type Ratio,
-} from '@growth-desk/contract';
+import { isBriefMaking, LANGUAGE_LABELS, type AssetKind, type Ratio } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { EmptyState } from '@/components/molecules/EmptyState';
+import { DURATION, EASE } from '@/components/motion';
 import { ErrorState, errorMessage } from '@/components/molecules/ErrorState';
 import { Panel } from '@/components/organisms/Panel';
 import { Page } from '@/components/templates/Page';
@@ -21,7 +18,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useSessionStore } from '@/stores/session';
-import { useBrief, useBriefAssets, useHandoffTools, useMakeFeatures, useSendForReview } from '../api';
+import {
+  useBrief,
+  useBriefAssets,
+  useHandoffTools,
+  useMakeFeatures,
+  useSendForReview,
+} from '../api';
 import { AssetList } from './AssetList';
 import { canSendForReview, pickMaster, PREVIEW_RATIOS, readyVideo } from './helpers';
 import { HandoffCard } from './HandoffCard';
@@ -40,14 +43,27 @@ const TABS: { value: StudioTab; label: string }[] = [
   { value: 'cutdowns', label: 'Cut-downs' },
 ];
 
-function pillClass(active: boolean, activeTone: 'dark' | 'joy') {
+const pillSlide = { duration: DURATION.base, ease: EASE } as const;
+
+/** Small pill (Figma 241:1090, 241:1107). The active fill is a shared layoutId, so it slides. */
+function pillClass(active: boolean) {
   return cn(
-    'focus-ring inline-flex items-center rounded-pill px-2.5 py-1 text-2xs font-semibold transition-colors',
-    active
-      ? activeTone === 'dark'
-        ? 'bg-media-canvas text-media-text'
-        : 'bg-joy text-ink'
-      : 'bg-surface-card text-ink hover:bg-surface-sunken',
+    'focus-ring relative inline-flex items-center rounded-pill px-2.5 py-1 text-2xs font-semibold transition-colors duration-200',
+    active ? 'text-ink' : 'bg-surface-card text-ink hover:bg-surface-sunken',
+  );
+}
+
+function ActiveFill({ id, tone }: { id: string; tone: 'dark' | 'joy' }) {
+  return (
+    <motion.span
+      layoutId={id}
+      aria-hidden="true"
+      transition={pillSlide}
+      className={cn(
+        'absolute inset-0 rounded-pill',
+        tone === 'dark' ? 'bg-media-canvas' : 'bg-joy',
+      )}
+    />
   );
 }
 
@@ -92,7 +108,10 @@ export function StudioView({ briefId }: { briefId: string }) {
 
   if (brief.isPending) {
     return (
-      <Page title="Studio" subtitle="Make it · scene file from the brief · render, voice, captions, cut-downs">
+      <Page
+        title="Studio"
+        subtitle="Make it · scene file from the brief · render, voice, captions, cut-downs"
+      >
         <StudioSkeleton />
       </Page>
     );
@@ -100,7 +119,11 @@ export function StudioView({ briefId }: { briefId: string }) {
   if (brief.isError) {
     return (
       <Page title="Studio">
-        <ErrorState error={brief.error} onRetry={() => void brief.refetch()} retrying={brief.isFetching} />
+        <ErrorState
+          error={brief.error}
+          onRetry={() => void brief.refetch()}
+          retrying={brief.isFetching}
+        />
       </Page>
     );
   }
@@ -131,7 +154,12 @@ export function StudioView({ briefId }: { briefId: string }) {
 
   const uploadButton = (kind: AssetKind, label: string, r: Ratio | null = null) =>
     canUpload ? (
-      <Button size="sm" variant="secondary" leftIcon={CloudArrowUp} onClick={() => setUpload({ kind, ratio: r })}>
+      <Button
+        size="sm"
+        variant="secondary"
+        leftIcon={CloudArrowUp}
+        onClick={() => setUpload({ kind, ratio: r })}
+      >
         {label}
       </Button>
     ) : null;
@@ -144,11 +172,20 @@ export function StudioView({ briefId }: { briefId: string }) {
     </p>
   ) : null;
 
-  const assetsBlock = (kind: AssetKind, layout: 'list' | 'grid', emptyTitle: string, emptyDescription: string) =>
+  const assetsBlock = (
+    kind: AssetKind,
+    layout: 'list' | 'grid',
+    emptyTitle: string,
+    emptyDescription: string,
+  ) =>
     assets.isPending ? (
       <Skeleton className="h-24 w-full rounded-card" />
     ) : assets.isError ? (
-      <ErrorState error={assets.error} onRetry={() => void assets.refetch()} retrying={assets.isFetching} />
+      <ErrorState
+        error={assets.error}
+        onRetry={() => void assets.refetch()}
+        retrying={assets.isFetching}
+      />
     ) : (
       <AssetList
         briefId={b.id}
@@ -188,7 +225,11 @@ export function StudioView({ briefId }: { briefId: string }) {
             </Button>
           ) : (
             <Button asChild variant="dark" rightIcon={ArrowRight}>
-              <Link to={b.stage === 'brief' || b.stage === 'idea' ? `/briefs/${b.id}` : `/review/${b.id}`}>
+              <Link
+                to={
+                  b.stage === 'brief' || b.stage === 'idea' ? `/briefs/${b.id}` : `/review/${b.id}`
+                }
+              >
                 {b.stage === 'brief' || b.stage === 'idea' ? 'Open the brief' : 'Open review'}
               </Link>
             </Button>
@@ -196,18 +237,21 @@ export function StudioView({ briefId }: { briefId: string }) {
         </>
       }
     >
-      <Tabs value={tab} onValueChange={(v) => setTab(v as StudioTab)} className="flex flex-col gap-5">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as StudioTab)}
+        className="flex flex-col gap-5"
+      >
         <div className="flex flex-wrap items-center gap-3">
           <TabsList className="gap-2 bg-transparent p-0" aria-label="Studio sections">
             {TABS.map((t) => (
               <TabsTrigger
                 key={t.value}
                 value={t.value}
-                className={cn(
-                  'rounded-pill px-2.5 py-1 text-2xs font-semibold shadow-none data-[state=active]:bg-media-canvas data-[state=active]:text-media-text data-[state=inactive]:bg-surface-card data-[state=inactive]:text-ink',
-                )}
+                className="relative rounded-pill px-2.5 py-1 text-2xs font-semibold shadow-none transition-colors duration-200 data-[state=active]:bg-transparent data-[state=active]:text-media-text data-[state=inactive]:bg-surface-card data-[state=inactive]:text-ink"
               >
-                {t.label}
+                {tab === t.value ? <ActiveFill id="studio-tab" tone="dark" /> : null}
+                <span className="relative">{t.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -236,9 +280,10 @@ export function StudioView({ briefId }: { briefId: string }) {
                     role="radio"
                     aria-checked={ratio === r}
                     onClick={() => setRatio(r)}
-                    className={pillClass(ratio === r, 'joy')}
+                    className={pillClass(ratio === r)}
                   >
-                    {r}
+                    {ratio === r ? <ActiveFill id="studio-ratio" tone="joy" /> : null}
+                    <span className="relative">{r}</span>
                   </button>
                 ))}
               </div>
@@ -251,14 +296,30 @@ export function StudioView({ briefId }: { briefId: string }) {
               </div>
             </div>
           </div>
-          <Panel title={<span className="text-base">Master videos</span>} actions={uploadButton('video', 'Upload master', ratio)}>
-            {assetsBlock('video', 'list', 'No master yet', 'Upload the finished reel. Large files upload in parts.')}
+          <Panel
+            title={<span className="text-base">Master videos</span>}
+            actions={uploadButton('video', 'Upload master', ratio)}
+          >
+            {assetsBlock(
+              'video',
+              'list',
+              'No master yet',
+              'Upload the finished reel. Large files upload in parts.',
+            )}
           </Panel>
         </TabsContent>
 
         <TabsContent value="posters" className="mt-0">
-          <Panel title={<span className="text-base">Posters</span>} actions={uploadButton('poster', 'Upload poster', b.ratios[0] ?? '4:5')}>
-            {assetsBlock('poster', 'grid', 'No posters yet', 'Upload PNG, JPEG or WebP posters, one per ratio.')}
+          <Panel
+            title={<span className="text-base">Posters</span>}
+            actions={uploadButton('poster', 'Upload poster', b.ratios[0] ?? '4:5')}
+          >
+            {assetsBlock(
+              'poster',
+              'grid',
+              'No posters yet',
+              'Upload PNG, JPEG or WebP posters, one per ratio.',
+            )}
           </Panel>
         </TabsContent>
 
@@ -268,12 +329,19 @@ export function StudioView({ briefId }: { briefId: string }) {
             description="Accepted on the Brief screen. Read only here."
           >
             {b.claudeSuggestions.captions.length === 0 ? (
-              <p className="text-13 text-muted">No captions accepted yet. Draft them with the Claude co-writer on the brief.</p>
+              <p className="text-13 text-muted">
+                No captions accepted yet. Draft them with the Claude co-writer on the brief.
+              </p>
             ) : (
               <ul className="flex flex-col gap-3">
                 {b.claudeSuggestions.captions.map((c, i) => (
-                  <li key={`${c.language}-${i}`} className="flex flex-col gap-1 rounded-tile bg-surface-base px-3.5 py-2.5">
-                    <span className="text-2xs font-semibold uppercase tracking-kicker text-muted">{LANGUAGE_LABELS[c.language]}</span>
+                  <li
+                    key={`${c.language}-${i}`}
+                    className="flex flex-col gap-1 rounded-tile bg-surface-base px-3.5 py-2.5"
+                  >
+                    <span className="text-2xs font-semibold uppercase tracking-kicker text-muted">
+                      {LANGUAGE_LABELS[c.language]}
+                    </span>
                     <span lang={c.language} className="text-sm text-ink">
                       {c.text}
                     </span>
@@ -282,17 +350,36 @@ export function StudioView({ briefId }: { briefId: string }) {
               </ul>
             )}
           </Panel>
-          <Panel title={<span className="text-base">Caption files</span>} actions={uploadButton('caption', 'Upload caption file')}>
-            {assetsBlock('caption', 'list', 'No caption files yet', 'Upload WebVTT (.vtt) or SubRip (.srt) files.')}
+          <Panel
+            title={<span className="text-base">Caption files</span>}
+            actions={uploadButton('caption', 'Upload caption file')}
+          >
+            {assetsBlock(
+              'caption',
+              'list',
+              'No caption files yet',
+              'Upload WebVTT (.vtt) or SubRip (.srt) files.',
+            )}
           </Panel>
         </TabsContent>
 
         <TabsContent value="cutdowns" className="mt-0">
-          <Panel title={<span className="text-base">Cut-downs</span>} actions={uploadButton('cutdown', 'Upload cut-down', ratio)}>
+          <Panel
+            title={<span className="text-base">Cut-downs</span>}
+            actions={uploadButton('cutdown', 'Upload cut-down', ratio)}
+          >
             {assets.isSuccess && byKind('cutdown').length === 0 && !canUpload ? (
-              <EmptyState title="No cut-downs" description="Cut-downs appear here once a maker uploads them." />
+              <EmptyState
+                title="No cut-downs"
+                description="Cut-downs appear here once a maker uploads them."
+              />
             ) : (
-              assetsBlock('cutdown', 'list', 'No cut-downs yet', 'Upload a short version per ratio, for example 9:16 at 15 s.')
+              assetsBlock(
+                'cutdown',
+                'list',
+                'No cut-downs yet',
+                'Upload a short version per ratio, for example 9:16 at 15 s.',
+              )
             )}
           </Panel>
         </TabsContent>

@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { PageTransition } from '@/components/motion';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CommandPalette } from '@/components/organisms/CommandPalette';
@@ -53,11 +54,21 @@ export function AppShell() {
       <div className="lg:pl-[264px]">
         <main id="main" tabIndex={-1} className="min-w-0 px-6 pb-12 pt-9 outline-none xl:px-10">
           <Suspense fallback={<PageSkeleton />}>
-            <Outlet />
+            <RouteFade />
           </Suspense>
         </main>
       </div>
       <CommandPalette />
     </div>
+  );
+}
+
+/** Each screen eases in when the path changes (not on query-string changes like ?tab=). */
+function RouteFade() {
+  const { pathname } = useLocation();
+  return (
+    <PageTransition key={pathname}>
+      <Outlet />
+    </PageTransition>
   );
 }

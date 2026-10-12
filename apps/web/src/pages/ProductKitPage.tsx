@@ -10,6 +10,7 @@ import {
 } from '@growth-desk/contract';
 import { Avatar } from '@/components/atoms/Avatar';
 import { Button } from '@/components/atoms/Button';
+import { IconButton } from '@/components/atoms/IconButton';
 import { Icon } from '@/components/atoms/Icon';
 import { Input, Textarea } from '@/components/atoms/Input';
 import { Kicker } from '@/components/atoms/Kicker';
@@ -255,23 +256,21 @@ export default function ProductKitPage() {
         </Button>
       ) : null}
       {kit.canEdit ? (
-        <Button variant="secondary" leftIcon={PencilSimple} onClick={startEdit}>
-          Edit kit
-        </Button>
+        <IconButton
+          icon={PencilSimple}
+          label="Edit kit"
+          onClick={startEdit}
+          className="size-11 border-[1.5px] border-strong"
+        />
       ) : null}
       {kit.status === 'draft' && kit.canSign ? (
         <Button leftIcon={Seal} onClick={() => setConfirmSign(true)}>
           Sign kit
         </Button>
       ) : kit.status === 'signed' ? (
-        <>
-          <StatusChip tone="care" icon={Seal}>
-            Signed · v{kit.version}
-          </StatusChip>
-          <Button leftIcon={Lightbulb} onClick={goToIdeas}>
-            Go to ideas
-          </Button>
-        </>
+        <Button leftIcon={Lightbulb} onClick={goToIdeas}>
+          Go to ideas
+        </Button>
       ) : (
         <StatusChip tone="reminder">Waiting for the owner to sign</StatusChip>
       )}
@@ -307,9 +306,16 @@ export default function ProductKitPage() {
                 aria-labelledby="kit-promise"
                 className="flex flex-col gap-3 rounded-card bg-joy-soft p-6"
               >
-                <Kicker as="h2" size="sm" tone="joy" id="kit-promise">
-                  Promise
-                </Kicker>
+                <div className="flex items-center justify-between gap-3">
+                  <Kicker as="h2" size="sm" tone="joy" id="kit-promise">
+                    Promise
+                  </Kicker>
+                  {kit.status === 'signed' && !editing ? (
+                    <StatusChip tone="care" icon={Seal}>
+                      Signed · v{kit.version}
+                    </StatusChip>
+                  ) : null}
+                </div>
                 {editing && d ? (
                   <>
                     <Textarea
@@ -324,7 +330,9 @@ export default function ProductKitPage() {
                     ) : null}
                   </>
                 ) : (
-                  <p className="text-2xl font-bold text-ink">{kit.promise ?? 'Not written yet.'}</p>
+                  <p className="text-[24px] font-bold leading-[1.4] text-ink">
+                    {kit.promise ?? 'Not written yet.'}
+                  </p>
                 )}
               </section>
 

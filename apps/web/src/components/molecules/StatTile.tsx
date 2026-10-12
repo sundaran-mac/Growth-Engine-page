@@ -1,4 +1,5 @@
-import type * as React from 'react';
+import * as React from 'react';
+import { useCountUp } from '@/components/motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Kicker } from '@/components/atoms/Kicker';
@@ -23,11 +24,33 @@ const deltaTones: Record<StatDeltaTone, string> = {
   danger: 'text-danger-text',
 };
 
+/** The big number. Strings and numbers count up once on first mount; other nodes render as they are. */
+function StatValue({ value }: { value: React.ReactNode }) {
+  const ref = React.useRef<HTMLParagraphElement>(null);
+  const text = typeof value === 'string' || typeof value === 'number' ? String(value) : null;
+  useCountUp(ref, text);
+  return (
+    <p ref={ref} className="text-stat font-bold tabular-nums text-ink">
+      {text ?? value}
+    </p>
+  );
+}
+
 /** Figma "Stat tile" (237:784): card, 20px radius, 20px padding, 30px bold value. */
-export function StatTile({ label, value, delta, deltaTone = 'joy', loading = false, className }: StatTileProps) {
+export function StatTile({
+  label,
+  value,
+  delta,
+  deltaTone = 'joy',
+  loading = false,
+  className,
+}: StatTileProps) {
   return (
     <div
-      className={cn('flex min-w-0 flex-col items-start gap-1 rounded-card border border-hairline bg-surface-card p-5', className)}
+      className={cn(
+        'flex min-w-0 flex-col items-start gap-1 rounded-card border border-hairline bg-surface-card p-5',
+        className,
+      )}
       aria-busy={loading || undefined}
     >
       <Kicker as="p" className="w-full truncate">
@@ -40,8 +63,10 @@ export function StatTile({ label, value, delta, deltaTone = 'joy', loading = fal
         </>
       ) : (
         <>
-          <p className="text-stat font-bold text-ink">{value}</p>
-          {delta ? <p className={cn('text-xs font-medium', deltaTones[deltaTone])}>{delta}</p> : null}
+          <StatValue value={value} />
+          {delta ? (
+            <p className={cn('text-xs font-medium', deltaTones[deltaTone])}>{delta}</p>
+          ) : null}
         </>
       )}
     </div>

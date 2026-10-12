@@ -1,7 +1,12 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { ApprovalListItem, GateBrief, ReviewComment, ReviewDetail } from '@growth-desk/contract';
+import type {
+  ApprovalListItem,
+  GateBrief,
+  ReviewComment,
+  ReviewDetail,
+} from '@growth-desk/contract';
 import ApprovalsPage from '@/pages/ApprovalsPage';
 import ReviewPage from '@/pages/ReviewPage';
 import { useSessionStore } from '@/stores/session';
@@ -267,8 +272,16 @@ describe('comment threads', () => {
       body: 'Moved it up',
       createdAt: '2026-10-12T12:05:00.000Z',
     });
-    const early = comment({ id: OTHER_ID, parentId: ROOT_ID, body: 'Seen', createdAt: '2026-10-12T12:01:00.000Z' });
-    const orphan = comment({ id: '88888888-8888-4888-8888-888888888888', parentId: '99999999-9999-4999-8999-999999999999' });
+    const early = comment({
+      id: OTHER_ID,
+      parentId: ROOT_ID,
+      body: 'Seen',
+      createdAt: '2026-10-12T12:01:00.000Z',
+    });
+    const orphan = comment({
+      id: '88888888-8888-4888-8888-888888888888',
+      parentId: '99999999-9999-4999-8999-999999999999',
+    });
     const threads = toThreads([root, reply, early, orphan]);
     expect(threads).toHaveLength(2);
     expect(threads[0]!.root.id).toBe(ROOT_ID);
@@ -319,7 +332,9 @@ describe('comment threads', () => {
     await waitFor(() => expect(posted).toEqual({ body: 'Thanks', parentId: ROOT_ID }));
     expect(await screen.findByText('Reply added')).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.queryByRole('textbox', { name: 'Reply to Kavya Tester' })).not.toBeInTheDocument(),
+      expect(
+        screen.queryByRole('textbox', { name: 'Reply to Kavya Tester' }),
+      ).not.toBeInTheDocument(),
     );
   });
 });

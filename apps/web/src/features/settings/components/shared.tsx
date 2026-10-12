@@ -39,7 +39,7 @@ export function SaveBar({
   return (
     <div
       className={cn(
-        'sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-5 py-3 shadow-popover transition-opacity',
+        'sticky bottom-4 z-10 flex flex-wrap items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-5 py-3 shadow-overlay transition-opacity',
         dirty ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
       aria-hidden={!dirty}
@@ -136,7 +136,7 @@ export function ChipToggle({
         'focus-ring inline-flex h-9 items-center rounded-pill border px-3.5 text-13 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         pressed
           ? 'border-joy bg-joy-soft text-joy-text'
-          : 'border-strong bg-surface-card text-muted hover:text-ink',
+          : 'border-strong bg-surface-card text-ink hover:bg-surface-sunken',
         className,
       )}
     >

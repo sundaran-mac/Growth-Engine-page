@@ -55,10 +55,17 @@ export function buildSceneTimeline(
   brief: Pick<Brief, 'hook' | 'beats' | 'captionLanguages'>,
   master: Pick<MakeAsset, 'durationMs' | 'licence'> | null,
 ): SceneTimeline {
-  const durationMs = master?.durationMs && master.durationMs > 0 ? master.durationMs : DEFAULT_DURATION_MS;
+  const durationMs =
+    master?.durationMs && master.durationMs > 0 ? master.durationMs : DEFAULT_DURATION_MS;
   const estimated = !(master?.durationMs && master.durationMs > 0);
 
-  const parts: { key: string; label: string; weight: number; tone: SegmentTone; detail: string | null }[] = [
+  const parts: {
+    key: string;
+    label: string;
+    weight: number;
+    tone: SegmentTone;
+    detail: string | null;
+  }[] = [
     { key: 'hook', label: 'Hook', weight: SHORT_WEIGHT, tone: 'joy-soft', detail: brief.hook },
     ...brief.beats.map((b, i) => ({
       key: `beat-${i + 1}`,

@@ -119,7 +119,7 @@ export default function PlanPage() {
         </Button>
       ) : null}
       {plan && !frozen && perms.canFreeze ? (
-        <Button leftIcon={LockSimple} onClick={() => setFreezeOpen(true)}>
+        <Button onClick={() => setFreezeOpen(true)}>
           Freeze month
         </Button>
       ) : null}

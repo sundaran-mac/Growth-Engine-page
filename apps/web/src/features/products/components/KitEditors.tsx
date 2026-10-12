@@ -5,12 +5,23 @@
  * LinesEditor: plain lines (truth sources).
  */
 import { ArrowDown, ArrowUp, Plus, Trash, X } from '@phosphor-icons/react';
+import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 import { Button } from '@/components/atoms/Button';
 import { IconButton } from '@/components/atoms/IconButton';
 import { Icon } from '@/components/atoms/Icon';
 import { Input } from '@/components/atoms/Input';
+import { DURATION, EASE } from '@/components/motion';
 import { cn } from '@/lib/utils';
+
+/** Chip enter and exit: a small fade and scale, siblings slide with layout. */
+const chipMotion = {
+  layout: true,
+  initial: { opacity: 0, scale: 0.85 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.85 },
+  transition: { duration: DURATION.fast, ease: EASE },
+} as const;
 
 export interface ChipEditorProps {
   label: string;
@@ -53,25 +64,28 @@ export function ChipEditor({
   return (
     <div className="flex flex-col gap-3">
       <ul className="flex flex-wrap gap-2" aria-label={label}>
-        {values.map((v) => (
-          <li
-            key={v}
-            className={cn(
-              'inline-flex items-center gap-1 rounded-pill py-1 pl-2.5 pr-1 text-2xs font-semibold',
-              chipTones[tone],
-            )}
-          >
-            {v}
-            <button
-              type="button"
-              onClick={() => onChange(values.filter((x) => x !== v))}
-              className="inline-flex size-5 items-center justify-center rounded-full hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label={`Remove ${v}`}
+        <AnimatePresence initial={false} mode="popLayout">
+          {values.map((v) => (
+            <motion.li
+              key={v}
+              {...chipMotion}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-pill py-1 pl-2.5 pr-1 text-2xs font-semibold',
+                chipTones[tone],
+              )}
             >
-              <Icon icon={X} size={12} />
-            </button>
-          </li>
-        ))}
+              {v}
+              <button
+                type="button"
+                onClick={() => onChange(values.filter((x) => x !== v))}
+                className="inline-flex size-5 items-center justify-center rounded-full hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label={`Remove ${v}`}
+              >
+                <Icon icon={X} size={12} />
+              </button>
+            </motion.li>
+          ))}
+        </AnimatePresence>
         {values.length === 0 ? <li className="text-13 text-muted">Nothing yet.</li> : null}
       </ul>
       <div className="flex gap-2">

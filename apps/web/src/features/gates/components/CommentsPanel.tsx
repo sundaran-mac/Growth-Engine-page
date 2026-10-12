@@ -1,9 +1,11 @@
 import { ArrowBendUpLeft, CheckCircle, ArrowCounterClockwise } from '@phosphor-icons/react';
+import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { REVIEW_COMMENT_MAX, type ReviewComment } from '@growth-desk/contract';
 import { Avatar, Button, StatusChip, Textarea } from '@/components/atoms';
 import { EmptyState, ErrorState, errorMessage } from '@/components/molecules';
+import { DURATION, EASE } from '@/components/motion';
 import { Panel } from '@/components/organisms';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -23,6 +25,17 @@ export interface CommentsPanelProps {
   positionMs: number | null;
   onSeek: (ms: number) => void;
 }
+
+/** A new comment or reply eases in; one that goes away fades out. Nothing moves on refetch. */
+const itemMotion = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, transition: { duration: DURATION.fast, ease: EASE } },
+  transition: { duration: DURATION.base, ease: EASE },
+} as const;
+
+/** Reply and Resolve: small text actions under a comment (not full pills). */
+const actionClass = 'h-7 gap-1.5 px-2 text-xs';
 
 const nameOf = (c: ReviewComment) => c.authorLabel ?? c.author?.name ?? 'Former member';
 
@@ -92,7 +105,13 @@ function ReplyForm({
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-2">
+    <motion.form
+      onSubmit={(e) => void submit(e)}
+      className="flex flex-col gap-2"
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: DURATION.base, ease: EASE }}
+    >
       <Label htmlFor={id} className="sr-only">
         Reply to {nameOf(root)}
       </Label>
@@ -110,14 +129,26 @@ function ReplyForm({
         }}
       />
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone} disabled={create.isPending}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onDone}
+          disabled={create.isPending}
+        >
           Cancel
         </Button>
-        <Button type="submit" size="sm" variant="dark" loading={create.isPending} disabled={!body.trim()}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="dark"
+          loading={create.isPending}
+          disabled={!body.trim()}
+        >
           Send reply
         </Button>
       </div>
-    </form>
+    </motion.form>
   );
 }
 
@@ -168,7 +199,7 @@ export function CommentsPanel({
   }
 
   return (
-    <Panel title="Comments" className="w-full">
+    <Panel title="Comments" titleSize="sm" className="w-full">
       {error ? (
         <ErrorState error={error} onRetry={onRetry} />
       ) : isLoading ? (
@@ -184,55 +215,69 @@ export function CommentsPanel({
           ))}
         </div>
       ) : threads.length > 0 ? (
-        <ul className="flex flex-col gap-4">
-          {threads.map(({ root, replies }) => (
-            <li
-              key={root.id}
-              className={cn('flex flex-col gap-2', root.resolved && 'opacity-60')}
-              aria-label={`Comment by ${nameOf(root)}${replies.length ? `, ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}` : ''}`}
-            >
-              <div className="flex items-start gap-3">
-                <CommentBody comment={root} onSeek={onSeek} size="root" />
-              </div>
-              {replies.length > 0 ? (
-                <ul className="ml-12 flex flex-col gap-2 border-l border-hairline pl-3" aria-label="Replies">
-                  {replies.map((r) => (
-                    <li key={r.id} className="flex items-start gap-2.5">
-                      <CommentBody comment={r} size="reply" />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {canComment ? (
-                <div className="ml-12 flex flex-col gap-2">
-                  {replyTo === root.id ? (
-                    <ReplyForm briefId={briefId} root={root} onDone={() => setReplyTo(null)} />
-                  ) : (
-                    <div className="-ml-2 flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        leftIcon={ArrowBendUpLeft}
-                        onClick={() => setReplyTo(root.id)}
-                        aria-label={`Reply to ${nameOf(root)}`}
-                      >
-                        Reply
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        leftIcon={root.resolved ? ArrowCounterClockwise : CheckCircle}
-                        loading={update.isPending && update.variables?.id === root.id}
-                        onClick={() => void toggleResolved(root)}
-                      >
-                        {root.resolved ? 'Reopen' : 'Resolve'}
-                      </Button>
-                    </div>
-                  )}
+        <ul className="flex flex-col gap-3">
+          <AnimatePresence>
+            {threads.map(({ root, replies }) => (
+              <motion.li
+                key={root.id}
+                layout="position"
+                {...itemMotion}
+                className={cn(
+                  'flex flex-col gap-1.5 transition-opacity',
+                  root.resolved && 'opacity-60',
+                )}
+                aria-label={`Comment by ${nameOf(root)}${replies.length ? `, ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}` : ''}`}
+              >
+                <div className="flex items-start gap-3">
+                  <CommentBody comment={root} onSeek={onSeek} size="root" />
                 </div>
-              ) : null}
-            </li>
-          ))}
+                {replies.length > 0 ? (
+                  <ul
+                    className="ml-12 flex flex-col gap-2 border-l border-hairline pl-3"
+                    aria-label="Replies"
+                  >
+                    <AnimatePresence>
+                      {replies.map((r) => (
+                        <motion.li key={r.id} {...itemMotion} className="flex items-start gap-2.5">
+                          <CommentBody comment={r} size="reply" />
+                        </motion.li>
+                      ))}
+                    </AnimatePresence>
+                  </ul>
+                ) : null}
+                {canComment ? (
+                  <div className="ml-12 flex flex-col gap-2">
+                    {replyTo === root.id ? (
+                      <ReplyForm briefId={briefId} root={root} onDone={() => setReplyTo(null)} />
+                    ) : (
+                      <div className="-ml-2 flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={actionClass}
+                          leftIcon={ArrowBendUpLeft}
+                          onClick={() => setReplyTo(root.id)}
+                          aria-label={`Reply to ${nameOf(root)}`}
+                        >
+                          Reply
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={cn(actionClass, 'text-muted hover:text-ink')}
+                          leftIcon={root.resolved ? ArrowCounterClockwise : CheckCircle}
+                          loading={update.isPending && update.variables?.id === root.id}
+                          onClick={() => void toggleResolved(root)}
+                        >
+                          {root.resolved ? 'Reopen' : 'Resolve'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </motion.li>
+            ))}
+          </AnimatePresence>
         </ul>
       ) : (
         <EmptyState

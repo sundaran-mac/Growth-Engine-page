@@ -15,6 +15,7 @@ import {
   type DocumentMimeType,
   type Platform,
 } from '@growth-desk/contract';
+import { zoneAbbrAt } from '@/features/publish';
 import { isApiError } from '@/lib/api';
 
 export const PLATFORM_ICONS: Record<Platform, PhosphorIcon> = {
@@ -68,14 +69,17 @@ export function viewerTimeZone(): string {
 
 /** Short zone name, for example "IST" or "GMT+8". */
 export function zoneAbbr(iso: string, timeZone: string): string {
+  // Friendly names (IST, SGT, GST) come from the publish helper; Intl alone gives "GMT+5:30".
   try {
-    const part = new Intl.DateTimeFormat('en-GB', { timeZone, timeZoneName: 'short' })
-      .formatToParts(new Date(iso))
-      .find((p) => p.type === 'timeZoneName');
-    return part?.value ?? timeZone;
+    return zoneAbbrAt(new Date(iso), timeZone);
   } catch {
     return timeZone;
   }
+}
+
+/** Short name of the viewer's zone right now, like "IST". */
+export function viewerZoneName(timeZone: string): string {
+  return zoneAbbr(new Date().toISOString(), timeZone);
 }
 
 /** "Thu 15 Oct, 7:30 pm" in the zone. */

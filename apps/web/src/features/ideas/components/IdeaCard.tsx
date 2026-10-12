@@ -51,8 +51,8 @@ export function IdeaCard({ idea, canWrite, canDelete, busy = false, onStar, onPa
         busy && 'opacity-60',
       )}
     >
-      <div className="flex w-full items-start gap-1">
-        <h3 className="min-w-0 flex-1 text-13 font-semibold text-ink [overflow-wrap:anywhere]" title={idea.summary ?? undefined}>
+      <div className="w-full">
+        <h3 className="min-w-0 text-13 font-semibold text-ink [overflow-wrap:anywhere]" title={idea.summary ?? undefined}>
           {idea.status === 'briefed' && idea.briefId ? (
             <Link to={`/briefs/${idea.briefId}`} className="focus-ring rounded-sm hover:underline">
               {idea.title}
@@ -65,7 +65,11 @@ export function IdeaCard({ idea, canWrite, canDelete, busy = false, onStar, onPa
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label={`Actions for ${idea.title}`}
-              className="focus-ring -mr-1.5 -mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-pill text-muted hover:bg-surface-sunken hover:text-ink"
+              className={cn(
+                'focus-ring absolute right-2 top-2 inline-flex size-7 items-center justify-center rounded-pill bg-surface-card text-muted transition-opacity hover:bg-surface-sunken hover:text-ink',
+                // Figma shows the card without a menu; it appears on hover, keyboard focus, touch screens, or while open.
+                'opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100',
+              )}
             >
               <DotsThree size={18} weight="bold" aria-hidden="true" />
             </DropdownMenuTrigger>
@@ -107,7 +111,7 @@ export function IdeaCard({ idea, canWrite, canDelete, busy = false, onStar, onPa
           </DropdownMenu>
         ) : null}
       </div>
-      <span className={cn('inline-flex rounded-pill px-2.5 py-1 text-2xs font-semibold', MODE_CHIP_CLASS[idea.mode])}>
+      <span className={cn('inline-flex whitespace-nowrap rounded-pill px-2.5 py-1 text-2xs font-semibold', MODE_CHIP_CLASS[idea.mode])}>
         {idea.mode} · {CONTENT_MODE_LABELS[idea.mode]}
       </span>
       {idea.angle ? (

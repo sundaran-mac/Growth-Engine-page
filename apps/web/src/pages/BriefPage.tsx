@@ -10,9 +10,24 @@ import { isApiError } from '@/lib/api';
 import { useBrief } from '@/features/make/api';
 import { BriefEditor } from '@/features/make/brief/BriefEditor';
 
+/** Inline skeleton for the top bar: the title is an h1 and the subtitle a p, so no div inside. */
+function TextSkeleton({ className }: { className: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`block animate-pulse rounded-tile bg-surface-sunken motion-reduce:animate-none ${className}`}
+    />
+  );
+}
+
 function BriefSkeleton() {
   return (
-    <Page title={<Skeleton className="h-8 w-80" />} documentTitle="Brief" subtitle={<Skeleton className="mt-1 h-4 w-64" />}>
+    <Page
+      title={<TextSkeleton className="h-8 w-80" />}
+      documentTitle="Brief"
+      subtitle={<TextSkeleton className="mt-1 h-4 w-64" />}
+      className="gap-5"
+    >
       <div className="flex gap-1.5" aria-hidden="true">
         {Array.from({ length: 8 }, (_, i) => (
           <Skeleton key={i} className="h-6 w-16 rounded-pill" />
@@ -35,7 +50,9 @@ export default function BriefPage() {
 
   if (query.isPending) return <BriefSkeleton />;
   if (query.isError) {
-    const notFound = isApiError(query.error) && (query.error.status === 404 || query.error.code === 'VALIDATION_FAILED');
+    const notFound =
+      isApiError(query.error) &&
+      (query.error.status === 404 || query.error.code === 'VALIDATION_FAILED');
     return (
       <Page title="Brief">
         {notFound ? (
@@ -45,12 +62,19 @@ export default function BriefPage() {
             description="It may have been removed, or the link is wrong."
             action={
               <Button asChild variant="secondary">
-                <Link to="/briefs"><ArrowLeft size={16} aria-hidden="true" />All briefs</Link>
+                <Link to="/briefs">
+                  <ArrowLeft size={16} aria-hidden="true" />
+                  All briefs
+                </Link>
               </Button>
             }
           />
         ) : (
-          <ErrorState error={query.error} onRetry={() => void query.refetch()} retrying={query.isFetching} />
+          <ErrorState
+            error={query.error}
+            onRetry={() => void query.refetch()}
+            retrying={query.isFetching}
+          />
         )}
       </Page>
     );

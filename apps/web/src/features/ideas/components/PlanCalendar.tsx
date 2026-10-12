@@ -11,8 +11,10 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { Plus } from '@phosphor-icons/react';
+import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import * as React from 'react';
 import type { Occasion, PlanItemView } from '@growth-desk/contract';
+import { DURATION, EASE } from '@/components/motion';
 import { cn } from '@/lib/utils';
 import { MODE_PLAN_CLASS, NO_MODE_PLAN_CLASS, calendarWeeks, dayOfMonth, longDate } from '../lib';
 
@@ -40,7 +42,7 @@ function ItemChip({ item, dragging = false }: { item: PlanItemView; dragging?: b
         'block w-full rounded-md px-2 py-1.5 text-left text-[10px] font-semibold leading-[1.4] [overflow-wrap:anywhere]',
         item.mode ? MODE_PLAN_CLASS[item.mode] : NO_MODE_PLAN_CLASS,
         item.needsShootSlot && 'ring-2 ring-inset ring-danger/60',
-        dragging && 'shadow-popover',
+        dragging && 'shadow-overlay',
       )}
     >
       {itemLabel(item)}
@@ -90,24 +92,21 @@ function DayCell({
       aria-label={longDate(date)}
       className={cn(
         'group/day relative flex min-h-[128px] min-w-0 flex-col gap-1.5 border border-hairline p-2 transition-colors',
-        !inMonth && 'bg-surface-base/60',
         isOver && 'bg-joy-soft/60',
       )}
     >
-      <div className="flex items-center justify-between">
-        <span className={cn('text-xs font-semibold', inMonth ? 'text-ink' : 'text-muted')}>{dayOfMonth(date)}</span>
-        {inMonth && editable ? (
-          <button
-            type="button"
-            onClick={onAdd}
-            aria-label={`Add a piece on ${longDate(date)}`}
-            className="focus-ring inline-flex size-6 items-center justify-center rounded-pill text-muted opacity-0 transition-opacity hover:bg-surface-sunken hover:text-ink focus-visible:opacity-100 group-hover/day:opacity-100"
-          >
-            <Plus size={14} aria-hidden="true" />
-          </button>
-        ) : null}
-      </div>
-      {inMonth ? children : null}
+      <span className={cn('text-xs font-semibold leading-[1.4]', inMonth ? 'text-ink' : 'text-muted')}>{dayOfMonth(date)}</span>
+      {inMonth && editable ? (
+        <button
+          type="button"
+          onClick={onAdd}
+          aria-label={`Add a piece on ${longDate(date)}`}
+          className="focus-ring absolute right-1.5 top-1.5 inline-flex size-6 items-center justify-center rounded-pill text-muted opacity-0 transition-opacity hover:bg-surface-sunken hover:text-ink focus-visible:opacity-100 group-hover/day:opacity-100 [@media(hover:none)]:opacity-100"
+        >
+          <Plus size={14} aria-hidden="true" />
+        </button>
+      ) : null}
+      {inMonth ? <AnimatePresence initial={false}>{children}</AnimatePresence> : null}
     </div>
   );
 }
@@ -162,7 +161,7 @@ export function PlanCalendar({ month, items, occasions, editable, onMove, onAdd,
       }}
     >
       <div className="overflow-x-auto">
-        <div role="grid" aria-label="Month calendar" className="min-w-[640px]">
+        <div role="grid" aria-label="Month calendar" className="min-w-[560px]">
           <div role="row" className="grid grid-cols-7">
             {WEEKDAYS.map((d) => (
               <div role="columnheader" key={d} className="px-2 pb-2 text-xs font-semibold text-muted">
@@ -170,6 +169,7 @@ export function PlanCalendar({ month, items, occasions, editable, onMove, onAdd,
               </div>
             ))}
           </div>
+          <LayoutGroup>
           <div className="flex flex-col gap-2">
             {weeks.map((row) => (
               <div role="row" key={row[0]} className="grid grid-cols-7">
@@ -181,16 +181,30 @@ export function PlanCalendar({ month, items, occasions, editable, onMove, onAdd,
                   return (
                     <DayCell key={date} date={date} inMonth={inMonth} editable={editable} onAdd={() => onAdd(date)}>
                       {dayItems.map((item) => (
-                        <DraggableItem key={item.id} item={item} editable={editable} onOpen={() => onOpenItem(item)} />
+                        <motion.div
+                          key={item.id}
+                          layout="position"
+                          initial={{ opacity: 0, scale: 0.94 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.94, transition: { duration: DURATION.fast, ease: EASE } }}
+                          transition={{ duration: DURATION.base, ease: EASE }}
+                        >
+                          <DraggableItem item={item} editable={editable} onOpen={() => onOpenItem(item)} />
+                        </motion.div>
                       ))}
                       {dayOccasions.map((o) => (
-                        <span
+                        <motion.span
                           key={o.id}
+                          layout="position"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: DURATION.base, ease: EASE }}
                           className="block rounded-md bg-surface-sunken px-2 py-1.5 text-[10px] font-semibold leading-[1.4] text-ink"
                           title={o.notes ?? undefined}
                         >
                           {o.name}
-                        </span>
+                        </motion.span>
                       ))}
                     </DayCell>
                   );
@@ -198,6 +212,7 @@ export function PlanCalendar({ month, items, occasions, editable, onMove, onAdd,
               </div>
             ))}
           </div>
+          </LayoutGroup>
         </div>
       </div>
       <DragOverlay dropAnimation={null}>{active ? <ItemChip item={active} dragging /> : null}</DragOverlay>

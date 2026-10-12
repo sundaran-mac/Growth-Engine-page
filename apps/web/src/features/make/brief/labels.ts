@@ -32,8 +32,10 @@ export function joinDot(parts: readonly string[]): string {
 }
 
 export const formatRatios = (ratios: readonly Ratio[]) => joinDot(ratios);
-export const formatLanguages = (langs: readonly Language[]) => joinDot(langs.map((l) => LANGUAGE_LABELS[l]));
-export const formatChannels = (channels: readonly Platform[]) => joinDot(channels.map((c) => PLATFORM_SHORT[c]));
+export const formatLanguages = (langs: readonly Language[]) =>
+  joinDot(langs.map((l) => LANGUAGE_LABELS[l]));
+export const formatChannels = (channels: readonly Platform[]) =>
+  joinDot(channels.map((c) => PLATFORM_SHORT[c]));
 
 export function firstName(user: UserRef | null | undefined): string | null {
   if (!user) return null;

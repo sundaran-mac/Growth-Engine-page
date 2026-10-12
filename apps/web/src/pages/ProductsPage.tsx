@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { Stagger, StaggerItem } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
 import { useSessionStore } from '@/stores/session';
 import { useProducts } from '@/features/products/api';
@@ -60,12 +61,16 @@ export default function ProductsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Stagger className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
           {query.data.items.map((p) => (
-            <ProductCard key={p.id} product={p} />
+            <StaggerItem key={p.id} className="min-w-0">
+              <ProductCard product={p} />
+            </StaggerItem>
           ))}
-          <AddProductCard onClick={() => setAdding(true)} disabled={!canAdd} />
-        </div>
+          <StaggerItem className="flex min-w-0">
+            <AddProductCard onClick={() => setAdding(true)} disabled={!canAdd} />
+          </StaggerItem>
+        </Stagger>
       )}
       {adding ? <AddProductDialog open onOpenChange={setAdding} /> : null}
     </Page>

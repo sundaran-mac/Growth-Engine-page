@@ -53,7 +53,12 @@ const BRIEF: Brief = {
   updatedAt: '2026-10-10T10:00:00.000Z',
 };
 
-const PRODUCTS = { items: [{ id: PRODUCT_ID, name: 'Humini Live', slug: 'live', status: 'in_build', color: '#ff9a00' }], total: 1 };
+const PRODUCTS = {
+  items: [
+    { id: PRODUCT_ID, name: 'Humini Live', slug: 'live', status: 'in_build', color: '#ff9a00' },
+  ],
+  total: 1,
+};
 
 describe('content memory in MAKE', () => {
   beforeEach(() => {
@@ -66,16 +71,30 @@ describe('content memory in MAKE', () => {
     mockFetch({
       'GET /products': () => jsonResponse(PRODUCTS),
       [`GET /briefs/${BRIEF_ID}`]: () => jsonResponse(BRIEF),
-      [`GET /briefs/${BRIEF_ID}/options`]: () => jsonResponse({ owners: [], claimsApprovers: [], brandApprovers: [] }),
+      [`GET /briefs/${BRIEF_ID}/options`]: () =>
+        jsonResponse({ owners: [], claimsApprovers: [], brandApprovers: [] }),
       'POST /memory/check': (init) => {
         checks.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
         return jsonResponse({ status: 'duplicate', matches: [MATCH] });
       },
     });
-    renderWithRouter([{ path: '/briefs/:briefId', element: <BriefPage /> }], [`/briefs/${BRIEF_ID}`]);
-    expect(await screen.findByText(/not saved until you change it/, {}, { timeout: 3000 })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Sunday call/ })).toHaveAttribute('href', `/briefs/${OTHER_BRIEF}`);
-    expect(checks[0]).toMatchObject({ kind: 'brief_hook', title: 'Office pulse check', body: 'Mum calls at six!', excludeBriefId: BRIEF_ID });
+    renderWithRouter(
+      [{ path: '/briefs/:briefId', element: <BriefPage /> }],
+      [`/briefs/${BRIEF_ID}`],
+    );
+    expect(
+      await screen.findByText(/not saved until you change it/, {}, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Sunday call/ })).toHaveAttribute(
+      'href',
+      `/briefs/${OTHER_BRIEF}`,
+    );
+    expect(checks[0]).toMatchObject({
+      kind: 'brief_hook',
+      title: 'Office pulse check',
+      body: 'Mum calls at six!',
+      excludeBriefId: BRIEF_ID,
+    });
   });
 
   it('new brief: shows the similar piece and asks for a reason', async () => {
@@ -85,11 +104,19 @@ describe('content memory in MAKE', () => {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         bodies.push(body);
         if (!body.similarReason) {
-          return jsonResponse({ type: 'x', title: 'Close', status: 409, code: 'IDEA_SIMILAR', detail: 'Close.' }, 409, 'application/problem+json');
+          return jsonResponse(
+            { type: 'x', title: 'Close', status: 409, code: 'IDEA_SIMILAR', detail: 'Close.' },
+            409,
+            'application/problem+json',
+          );
         }
         return jsonResponse({ ...BRIEF, title: body.title }, 201);
       },
-      'POST /memory/check': () => jsonResponse({ status: 'similar', matches: [{ ...MATCH, sourceType: 'idea', level: 'similar', score: 0.45 }] }),
+      'POST /memory/check': () =>
+        jsonResponse({
+          status: 'similar',
+          matches: [{ ...MATCH, sourceType: 'idea', level: 'similar', score: 0.45 }],
+        }),
     });
     renderWithProviders(<NewBriefDialog open onOpenChange={() => {}} productId={PRODUCT_ID} />);
     await userEvent.type(screen.getByLabelText(/Title/), 'Sunday calls');
@@ -98,6 +125,9 @@ describe('content memory in MAKE', () => {
     await userEvent.type(screen.getByLabelText(/Use anyway, because/), 'Mum leads, not the kids');
     await userEvent.click(screen.getByRole('button', { name: 'Create anyway' }));
     await waitFor(() => expect(bodies).toHaveLength(2));
-    expect(bodies[1]).toMatchObject({ title: 'Sunday calls', similarReason: 'Mum leads, not the kids' });
+    expect(bodies[1]).toMatchObject({
+      title: 'Sunday calls',
+      similarReason: 'Mum leads, not the kids',
+    });
   });
 });

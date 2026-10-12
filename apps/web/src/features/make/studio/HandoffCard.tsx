@@ -1,6 +1,7 @@
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Icon } from '@/components/atoms/Icon';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { Stagger, StaggerItem } from '@/components/motion';
 import { Panel } from '@/components/organisms/Panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHandoffTools } from '../api';
@@ -17,11 +18,15 @@ export function HandoffCard() {
           ))}
         </div>
       ) : tools.isError ? (
-        <ErrorState error={tools.error} onRetry={() => void tools.refetch()} retrying={tools.isFetching} />
+        <ErrorState
+          error={tools.error}
+          onRetry={() => void tools.refetch()}
+          retrying={tools.isFetching}
+        />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <Stagger as="ul" className="flex flex-col gap-3">
           {tools.data.items.map((tool) => (
-            <li key={tool.key} className="flex items-center gap-2">
+            <StaggerItem as="li" key={tool.key} className="flex items-center gap-2">
               <div className="flex min-w-0 flex-1 flex-col">
                 <span className="text-13 font-semibold text-ink">{tool.name}</span>
                 <span className="text-xs text-muted">{tool.description}</span>
@@ -40,9 +45,9 @@ export function HandoffCard() {
               ) : (
                 <span className="text-xs text-muted">Not set up</span>
               )}
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       )}
     </Panel>
   );
