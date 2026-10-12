@@ -75,7 +75,10 @@ export function PreviewPlayer({ asset, ratio, caption, canUpload, onUpload }: Pr
             <Spinner size={28} label="Loading video" />
           </span>
         ) : url.isError ? (
-          <p role="alert" className="absolute inset-x-6 top-1/2 -translate-y-1/2 text-center text-13">
+          <p
+            role="alert"
+            className="absolute inset-x-6 top-1/2 -translate-y-1/2 text-center text-13"
+          >
             The video link could not be made. Try again in a moment.
           </p>
         ) : (
@@ -93,13 +96,25 @@ export function PreviewPlayer({ asset, ratio, caption, canUpload, onUpload }: Pr
                 <Icon icon={Pause} size={24} weight="fill" />
               </span>
             ) : (
-              <img src={playButtonUrl} alt="" width={60} height={60} className="block size-[60px]" />
+              <img
+                src={playButtonUrl}
+                alt=""
+                width={60}
+                height={60}
+                className="block size-[60px]"
+              />
             )}
           </button>
         )
       ) : (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
-          <img src={playButtonUrl} alt="" width={60} height={60} className="block size-[60px] opacity-40" />
+          <img
+            src={playButtonUrl}
+            alt=""
+            width={60}
+            height={60}
+            className="block size-[60px] opacity-40"
+          />
           <p className="text-13 text-media-text/80">No {ratio} video yet.</p>
           {canUpload ? (
             <Button size="sm" leftIcon={CloudArrowUp} onClick={onUpload}>

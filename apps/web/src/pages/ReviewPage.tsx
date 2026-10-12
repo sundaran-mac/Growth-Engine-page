@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { BRIEF_STAGE_LABELS, type ChecklistKey } from '@growth-desk/contract';
 import { Button, Icon } from '@/components/atoms';
 import { EmptyState, ErrorState, errorMessage } from '@/components/molecules';
+import { FadeIn } from '@/components/motion';
 import { Panel } from '@/components/organisms';
 import { Page } from '@/components/templates/Page';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -148,26 +149,28 @@ export default function ReviewPage() {
       }
     >
       {!inReview ? (
-        <Panel tone="sunken" className="flex-row items-center gap-3 p-4">
-          <Icon icon={Hourglass} size={20} />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <p className="text-sm font-semibold text-ink">
-              {waiting ? 'Waiting for approval' : `Stage: ${BRIEF_STAGE_LABELS[brief.stage]}`}
-            </p>
-            <p className="text-xs text-muted">
-              {waiting
-                ? 'The checklist is locked. Approvers decide on the Approvals screen.'
-                : 'The checklist only changes while a piece is in review.'}
-            </p>
-          </div>
-          {waiting ? (
-            <div className="flex flex-wrap gap-2">
-              {data.approvals.map((a) => (
-                <GateChip key={a.id} approval={a} decidableIds={NO_IDS} />
-              ))}
+        <FadeIn>
+          <Panel tone="sunken" className="flex-row items-center gap-3 p-4">
+            <Icon icon={Hourglass} size={20} />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <p className="text-sm font-semibold text-ink">
+                {waiting ? 'Waiting for approval' : `Stage: ${BRIEF_STAGE_LABELS[brief.stage]}`}
+              </p>
+              <p className="text-xs text-muted">
+                {waiting
+                  ? 'The checklist is locked. Approvers decide on the Approvals screen.'
+                  : 'The checklist only changes while a piece is in review.'}
+              </p>
             </div>
-          ) : null}
-        </Panel>
+            {waiting ? (
+              <div className="flex flex-wrap gap-2">
+                {data.approvals.map((a) => (
+                  <GateChip key={a.id} approval={a} decidableIds={NO_IDS} />
+                ))}
+              </div>
+            ) : null}
+          </Panel>
+        </FadeIn>
       ) : null}
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">

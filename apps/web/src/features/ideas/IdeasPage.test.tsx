@@ -78,7 +78,8 @@ describe('IdeasPage', () => {
     await screen.findByText('Elan reads your group chat');
     await userEvent.click(screen.getByRole('button', { name: 'M5 Fun' }));
     expect(screen.getByRole('button', { name: 'M5 Fun' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.queryByText('Elan reads your group chat')).not.toBeInTheDocument();
+    // The filtered-out card leaves with a short exit animation.
+    await waitFor(() => expect(screen.queryByText('Elan reads your group chat')).not.toBeInTheDocument());
     expect(screen.getByText('Rating the family group')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'New from Claude, 1' })).toBeInTheDocument();
   });

@@ -19,8 +19,21 @@ import { Button } from '@/components/atoms/Button';
 import { Input, Textarea } from '@/components/atoms/Input';
 import { Field } from '@/components/molecules/Field';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { isApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { MemoryMatches } from '@/features/ideas/components/MemoryMatches';
@@ -56,7 +69,11 @@ export function NewBriefDialog({
   });
   const { register, control, handleSubmit, formState, reset, setError } = form;
   const check = useMemoryCheck();
-  const [lastRepeat, setRepeat] = React.useState<{ status: 'duplicate' | 'similar'; title: string; matches: MemoryMatch[] } | null>(null);
+  const [lastRepeat, setRepeat] = React.useState<{
+    status: 'duplicate' | 'similar';
+    title: string;
+    matches: MemoryMatch[];
+  } | null>(null);
   const title = useWatch({ control, name: 'title' });
   // The matches belong to the title that was checked; a changed title needs a new check.
   const repeat = lastRepeat && lastRepeat.title === (title ?? '').trim() ? lastRepeat : null;
@@ -69,7 +86,11 @@ export function NewBriefDialog({
     }
     try {
       const { similarReason: _omit, ...rest } = values;
-      const brief = await create.mutateAsync({ ...rest, productId, ...(repeat?.status === 'similar' ? { similarReason: reason } : {}) });
+      const brief = await create.mutateAsync({
+        ...rest,
+        productId,
+        ...(repeat?.status === 'similar' ? { similarReason: reason } : {}),
+      });
       toast.success(`${brief.code} created`);
       reset();
       onOpenChange(false);
@@ -79,7 +100,12 @@ export function NewBriefDialog({
       if (kind) {
         // The full list of earlier pieces, with links, comes from the check endpoint.
         const matches = await check
-          .mutateAsync({ productId, kind: 'brief_hook', title: values.title, body: values.hook ?? null })
+          .mutateAsync({
+            productId,
+            kind: 'brief_hook',
+            title: values.title,
+            body: values.hook ?? null,
+          })
           .then((r) => r.matches)
           .catch(() => []);
         setRepeat({ status: kind, title: values.title.trim(), matches });
@@ -88,7 +114,8 @@ export function NewBriefDialog({
       if (isApiError(err) && err.errors.length > 0) {
         for (const e of err.errors) {
           const key = e.path.replace(/^body\./, '');
-          if (key === 'title' || key === 'mode' || key === 'kind' || key === 'channels') setError(key, { message: e.message });
+          if (key === 'title' || key === 'mode' || key === 'kind' || key === 'channels')
+            setError(key, { message: e.message });
         }
       }
       toast.error(isApiError(err) ? err.title : 'Could not create the brief', {
@@ -98,20 +125,41 @@ export function NewBriefDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={(o) => (formState.isSubmitting ? undefined : onOpenChange(o))}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => (formState.isSubmitting ? undefined : onOpenChange(o))}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New brief</DialogTitle>
-          <DialogDescription>Start a piece by hand. You write the hook, beats and ask next.</DialogDescription>
+          <DialogDescription>
+            Start a piece by hand. You write the hook, beats and ask next.
+          </DialogDescription>
         </DialogHeader>
-        <form id="new-brief-form" onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4" noValidate>
+        <form
+          id="new-brief-form"
+          onSubmit={(e) => void onSubmit(e)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
           <Field label="Title" required error={formState.errors.title}>
             <Input {...register('title')} placeholder="60 seconds with Elan, ep. 2" autoFocus />
           </Field>
-          {repeat ? <MemoryMatches status={repeat.status} matches={repeat.matches} what="brief" /> : null}
+          {repeat ? (
+            <MemoryMatches status={repeat.status} matches={repeat.matches} what="brief" />
+          ) : null}
           {repeat?.status === 'similar' ? (
-            <Field label="Use anyway, because..." required hint="Say what makes it new. Saved in the audit log." error={formState.errors.similarReason}>
-              <Textarea rows={2} maxLength={SIMILAR_REASON_MAX} {...register('similarReason', { shouldUnregister: true })} />
+            <Field
+              label="Use anyway, because..."
+              required
+              hint="Say what makes it new. Saved in the audit log."
+              error={formState.errors.similarReason}
+            >
+              <Textarea
+                rows={2}
+                maxLength={SIMILAR_REASON_MAX}
+                {...register('similarReason', { shouldUnregister: true })}
+              />
             </Field>
           ) : null}
           <div className="grid grid-cols-2 gap-3">
@@ -177,7 +225,9 @@ export function NewBriefDialog({
                           onClick={() => field.onChange(toggleIn(selected, p, PLATFORMS))}
                           className={cn(
                             'focus-ring rounded-pill border px-3 py-1 text-xs font-semibold',
-                            on ? 'border-joy bg-joy text-ink' : 'border-hairline bg-surface-card text-muted hover:text-ink',
+                            on
+                              ? 'border-joy bg-joy text-ink'
+                              : 'border-hairline bg-surface-card text-muted hover:text-ink',
                           )}
                         >
                           {PLATFORM_LABELS[p]}
@@ -191,10 +241,19 @@ export function NewBriefDialog({
           />
         </form>
         <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={formState.isSubmitting}>
+          <Button
+            variant="secondary"
+            onClick={() => onOpenChange(false)}
+            disabled={formState.isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit" form="new-brief-form" loading={formState.isSubmitting} disabled={repeat?.status === 'duplicate'}>
+          <Button
+            type="submit"
+            form="new-brief-form"
+            loading={formState.isSubmitting}
+            disabled={repeat?.status === 'duplicate'}
+          >
             {repeat?.status === 'similar' ? 'Create anyway' : 'Create brief'}
           </Button>
         </DialogFooter>

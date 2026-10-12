@@ -86,7 +86,13 @@ export function EditPostDialog({
   // Content memory: two different briefs must not share a near-identical caption (any product).
   const captionCheck = useLiveMemoryCheck(
     open && post && productId && watchedCaption?.trim()
-      ? { productId, kind: 'post_caption', title: watchedCaption.trim().slice(0, 200), body: watchedCaption.trim(), excludeBriefId: post.briefId }
+      ? {
+          productId,
+          kind: 'post_caption',
+          title: watchedCaption.trim().slice(0, 200),
+          body: watchedCaption.trim(),
+          excludeBriefId: post.briefId,
+        }
       : null,
   );
 

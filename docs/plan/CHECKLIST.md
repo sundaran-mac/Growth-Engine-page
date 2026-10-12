@@ -71,3 +71,18 @@ The lead updates this file after every agent finishes. Legend: [x] done and chec
 - [x] Lead: rebuild Docker, all suites, E2E again (E2E data now unique per run; 38/38 twice)
 - [x] Web `ApiError.extensions` keeps extra problem fields (for example `matches`)
 - [x] Publish: live "similar caption" warning in the post editor
+
+## Phase 5: visual pass and motion (Sundaran, 21:10)
+- [x] PR #2: dark buttons black text fix (tailwind-merge custom sizes)
+- [x] `motion` installed; shared `@/components/motion` (MotionProvider with reduced motion, FadeIn, Stagger, MotionCard, PageTransition)
+- [x] Page fade on route change; sliding orange pill in the sidebar; 16 px gap above MAKE, SHIP, LEARN
+- [x] V-KIT: sidebar fits (checked 960 and 800 px), shell + kit pixel match, kit motion (180 web tests)
+- [x] V-HOME: Home, Analytics, Sales (172 web tests pass)
+- [x] V-PLAN: Products, Product kit, Ideas, Plan, Integrations (172 web tests pass)
+- [x] V-MAKE: Briefs, Brief, Studio, Review, Approvals (172 web tests pass)
+- [x] V-SHIP: Publish, Schedule, Settings (172 web tests pass)
+- [x] Lead: Chrome check, web 180 tests, typecheck, lint, E2E 38/38
+- [ ] Commit `growth-desk-ui-polish` and open PR: WAIT for Sundaran's yes
+- [x] Sundaran: Briefs list table text touches the card borders. Cause: shared table `first:pl-0 last:pr-0`. V-KIT fixes once, checks all 9 table screens
+- [x] Remove duplicate `features/publish/MotionTable.tsx` after V-KIT adds its features to the shared DataTable
+- [x] Remove V-MAKE local Panel title override (now `titleSize="sm"`) once the shared Panel has the right title size

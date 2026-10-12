@@ -13,7 +13,11 @@ export interface ClaimDraft {
   ask: string | null;
 }
 
-export function useLiveClaimCheck(briefId: string, draft: ClaimDraft, opts: { enabled: boolean; delay?: number }) {
+export function useLiveClaimCheck(
+  briefId: string,
+  draft: ClaimDraft,
+  opts: { enabled: boolean; delay?: number },
+) {
   const { enabled, delay = 500 } = opts;
   const { mutateAsync } = useClaimCheck(briefId);
   const [result, setResult] = React.useState<ClaimCheckResult | null>(null);

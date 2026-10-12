@@ -24,8 +24,9 @@ import { Textarea } from '@/components/atoms/Input';
 import { cn } from '@/lib/utils';
 import type { BriefPatch } from './use-brief-autosave';
 
+/** Figma 240:1436: sunken field, 14px medium text, 14px x 10px padding, 10px radius (40px tall). */
 const fieldClass =
-  'min-h-[44px] resize-none rounded-[10px] border-transparent bg-surface-base text-sm font-medium [field-sizing:content] read-only:cursor-default read-only:focus-visible:ring-0';
+  'min-h-[40px] resize-none rounded-[10px] border-transparent bg-surface-base px-3.5 py-2.5 text-sm font-medium leading-[1.4] [field-sizing:content] read-only:cursor-default read-only:focus-visible:ring-0';
 
 interface TextFieldProps {
   label: string;
@@ -38,13 +39,26 @@ interface TextFieldProps {
   dragHandle?: React.ReactNode;
 }
 
-function BriefTextField({ label, value, readOnly, onChange, onBlur, placeholder, trailing, dragHandle }: TextFieldProps) {
+function BriefTextField({
+  label,
+  value,
+  readOnly,
+  onChange,
+  onBlur,
+  placeholder,
+  trailing,
+  dragHandle,
+}: TextFieldProps) {
   const id = React.useId();
   return (
     <div className="flex w-full flex-col gap-1">
-      <div className="flex min-h-6 items-center gap-1">
+      {/* Label row stays 15px tall like Figma; the beat controls overlap it with negative margins. */}
+      <div className="flex min-h-[15px] items-center gap-1 [&>*:not(label)]:-my-2">
         {dragHandle}
-        <label htmlFor={id} className="flex-1 text-2xs font-semibold uppercase tracking-kicker text-muted">
+        <label
+          htmlFor={id}
+          className="flex-1 text-2xs font-semibold uppercase leading-[1.4] tracking-kicker text-muted"
+        >
           {label}
         </label>
         {trailing}
@@ -76,8 +90,26 @@ interface SortableBeatProps {
   onRemove: () => void;
 }
 
-function SortableBeat({ id, index, count, value, readOnly, onChange, onBlur, onMove, onRemove }: SortableBeatProps) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
+function SortableBeat({
+  id,
+  index,
+  count,
+  value,
+  readOnly,
+  onChange,
+  onBlur,
+  onMove,
+  onRemove,
+}: SortableBeatProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id,
     disabled: readOnly,
   });
@@ -112,7 +144,14 @@ function SortableBeat({ id, index, count, value, readOnly, onChange, onBlur, onM
         trailing={
           readOnly ? null : (
             <div className="flex items-center">
-              <IconButton icon={ArrowUp} label={`Move ${label} up`} variant="ghost" size="sm" disabled={index === 0} onClick={() => onMove(index - 1)} />
+              <IconButton
+                icon={ArrowUp}
+                label={`Move ${label} up`}
+                variant="ghost"
+                size="sm"
+                disabled={index === 0}
+                onClick={() => onMove(index - 1)}
+              />
               <IconButton
                 icon={ArrowDown}
                 label={`Move ${label} down`}
@@ -121,7 +160,13 @@ function SortableBeat({ id, index, count, value, readOnly, onChange, onBlur, onM
                 disabled={index === count - 1}
                 onClick={() => onMove(index + 1)}
               />
-              <IconButton icon={Trash} label={`Remove ${label}`} variant="ghost" size="sm" onClick={onRemove} />
+              <IconButton
+                icon={Trash}
+                label={`Remove ${label}`}
+                variant="ghost"
+                size="sm"
+                onClick={onRemove}
+              />
             </div>
           )
         }
@@ -143,14 +188,22 @@ export interface BriefEditorCardProps {
 const nullIfEmpty = (v: string) => (v.trim() === '' ? null : v);
 
 /** Figma 240:1433: HOOK, BEAT n and ASK on sunken fields inside one card. */
-export function BriefEditorCard({ hook, beats, ask, readOnly, onChange, onFlush }: BriefEditorCardProps) {
+export function BriefEditorCard({
+  hook,
+  beats,
+  ask,
+  readOnly,
+  onChange,
+  onFlush,
+}: BriefEditorCardProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
   const ids = beats.map((_, i) => `beat-${i}`);
 
-  const setBeat = (i: number, v: string) => onChange({ beats: beats.map((b, j) => (j === i ? v : b)) });
+  const setBeat = (i: number, v: string) =>
+    onChange({ beats: beats.map((b, j) => (j === i ? v : b)) });
   const move = (from: number, to: number) => {
     if (to < 0 || to >= beats.length) return;
     onChange({ beats: arrayMove(beats, from, to) });
@@ -161,7 +214,10 @@ export function BriefEditorCard({ hook, beats, ask, readOnly, onChange, onFlush 
   };
 
   return (
-    <section aria-label="Script" className="flex w-full flex-col gap-3 rounded-card border border-hairline bg-surface-card p-6">
+    <section
+      aria-label="Script"
+      className="flex w-full flex-col gap-3 rounded-card border border-hairline bg-surface-card p-6"
+    >
       <BriefTextField
         label="Hook (0-2 s)"
         value={hook ?? ''}
@@ -172,7 +228,7 @@ export function BriefEditorCard({ hook, beats, ask, readOnly, onChange, onFlush 
       />
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <ol aria-label="Beats" className="flex flex-col gap-3">
+          <ol aria-label="Beats" className="flex flex-col gap-3 empty:hidden">
             {beats.map((b, i) => (
               <SortableBeat
                 key={ids[i]}

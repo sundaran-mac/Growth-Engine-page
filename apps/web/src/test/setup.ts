@@ -38,3 +38,6 @@ globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObse
 if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => {};
 if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false;
 if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => {};
+
+// jsdom does not implement window.scrollTo (it logs "not implemented"); a no-op keeps output clean.
+window.scrollTo = (() => {}) as typeof window.scrollTo;

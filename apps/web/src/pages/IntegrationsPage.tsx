@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/atoms/Button';
 import { ConfirmDialog } from '@/components/molecules/ConfirmDialog';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { Stagger } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
 import {
   DropdownMenu,
@@ -37,11 +38,7 @@ import {
   TOOL_STATUS_VIEW,
   toastArgs,
 } from '@/features/products/format';
-import {
-  ConnectChannelButton,
-  useConnectChannel,
-  useDisconnectChannel,
-} from '@/features/publish';
+import { ConnectChannelButton, useConnectChannel, useDisconnectChannel } from '@/features/publish';
 
 /** The OAuth provider that connects a channel platform; null for WhatsApp (by hand). */
 function oauthFor(platform: Platform): OAuthPlatform | null {
@@ -131,7 +128,8 @@ export default function IntegrationsPage() {
           retrying={query.isFetching}
         />
       ) : (
-        <ul
+        <Stagger
+          as="ul"
           className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
           aria-label="Integrations"
         >
@@ -193,7 +191,7 @@ export default function IntegrationsPage() {
               />
             );
           })}
-        </ul>
+        </Stagger>
       )}
 
       <TeamPanel />

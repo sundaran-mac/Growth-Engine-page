@@ -1,8 +1,10 @@
 // Approvals screen (Figma frame 241:1363). Owned by the GATES agent.
 import { SealCheck } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { EmptyState, ErrorState } from '@/components/molecules';
+import { DURATION, EASE } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useApprovalQueue } from '@/features/gates/api';
@@ -52,13 +54,21 @@ export default function ApprovalsPage() {
               aria-pressed={scope === s}
               onClick={() => setScope(s)}
               className={cn(
-                'focus-ring rounded-pill px-3.5 py-1.5 text-13 font-semibold',
+                'focus-ring relative rounded-pill border px-3.5 py-1.5 text-13 font-semibold transition-colors duration-200',
                 scope === s
-                  ? 'bg-media-canvas text-media-text'
-                  : 'border border-hairline bg-surface-card text-ink',
+                  ? 'border-transparent text-media-text'
+                  : 'border-hairline bg-surface-card text-ink hover:bg-surface-sunken',
               )}
             >
-              {s === 'mine' ? 'Waiting for me' : 'All pending'}
+              {scope === s ? (
+                <motion.span
+                  layoutId="approvals-scope"
+                  aria-hidden="true"
+                  className="absolute -inset-px rounded-pill bg-media-canvas"
+                  transition={{ duration: DURATION.base, ease: EASE }}
+                />
+              ) : null}
+              <span className="relative">{s === 'mine' ? 'Waiting for me' : 'All pending'}</span>
             </button>
           ))}
         </div>

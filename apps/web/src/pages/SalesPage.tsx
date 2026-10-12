@@ -1,10 +1,12 @@
 // Sales (Figma frame 242:1486). Owned by the INSIGHTS agent.
 import * as React from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { LEAD_BOARD_STAGES, type LeadStage, type LeadView } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { DURATION, EASE } from '@/components/motion';
 import { Panel } from '@/components/organisms/Panel';
 import { Page } from '@/components/templates/Page';
 import { Label } from '@/components/ui/label';
@@ -142,20 +144,32 @@ export default function SalesPage() {
               onMove={doMove}
             />
           </div>
-          {lead ? (
-            <LeadDetailPanel
-              lead={lead}
-              canEdit={canEdit(lead)}
-              moving={move.isPending}
-              onMove={(to) => doMove(lead, to)}
-              onLog={() => setLogOpen(true)}
-              onEdit={() => setFormOpen('edit')}
-            />
-          ) : (
-            <Panel>
-              <p className="text-sm text-muted">Pick a lead to see its details.</p>
-            </Panel>
-          )}
+          {/* The lead detail slides in from the right when it opens or another lead is picked. */}
+          <AnimatePresence mode="popLayout" initial>
+            <motion.div
+              key={lead?.id ?? 'none'}
+              className="min-w-0"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12, transition: { duration: DURATION.fast, ease: EASE } }}
+              transition={{ duration: DURATION.slow, ease: EASE }}
+            >
+              {lead ? (
+                <LeadDetailPanel
+                  lead={lead}
+                  canEdit={canEdit(lead)}
+                  moving={move.isPending}
+                  onMove={(to) => doMove(lead, to)}
+                  onLog={() => setLogOpen(true)}
+                  onEdit={() => setFormOpen('edit')}
+                />
+              ) : (
+                <Panel>
+                  <p className="text-sm text-muted">Pick a lead to see its details.</p>
+                </Panel>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       )}
 

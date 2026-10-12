@@ -1,4 +1,5 @@
 import { CheckCircle, Plus, Warning } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import type { Occasion, PlanChecks } from '@growth-desk/contract';
@@ -6,6 +7,7 @@ import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { IconButton } from '@/components/atoms/IconButton';
 import { Input, Textarea } from '@/components/atoms/Input';
+import { DURATION, EASE } from '@/components/motion';
 import { errorMessage } from '@/components/molecules/ErrorState';
 import { Field } from '@/components/molecules/Field';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -34,13 +36,17 @@ export const MixCheckPanel = React.forwardRef<HTMLElement, { checks: PlanChecks 
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
-            {checks.mix.map(({ mode, count }) => (
+            {checks.mix.map(({ mode, count }, i) => (
               <li key={mode} className="flex items-center gap-2 text-xs text-ink">
                 <span className="w-24 shrink-0">{modeLabel(mode)}</span>
-                <span
+                {/* The bar grows from the left once, when the panel first shows numbers. */}
+                <motion.span
                   aria-hidden="true"
-                  className={cn('h-2.5 rounded-[5px]', MODE_PLAN_CLASS[mode].split(' ')[0])}
+                  className={cn('h-2.5 origin-left rounded-[5px]', MODE_PLAN_CLASS[mode].split(' ')[0])}
                   style={{ width: count === 0 ? 4 : Math.max(12, Math.round((count / max) * BAR_MAX_PX)) }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: DURATION.slow, ease: EASE, delay: 0.03 * i }}
                 />
                 <span className="font-semibold">
                   {count}

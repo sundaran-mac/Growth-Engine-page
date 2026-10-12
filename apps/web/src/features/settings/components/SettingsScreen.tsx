@@ -7,8 +7,10 @@
  * Products and Plan frames until Jeeva designs it.
  */
 import { GearSix } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { useBlocker, useSearchParams } from 'react-router-dom';
+import { DURATION, EASE } from '@/components/motion';
 import { ConfirmDialog } from '@/components/molecules/ConfirmDialog';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
@@ -129,25 +131,39 @@ export function SettingsScreen() {
         {/* key: switching product remounts the forms, so no state leaks between products. */}
         <div key={formProductId}>
           <TabsContent value="general">
-            <GeneralTab productId={formProductId} canEdit={s.canEdit} />
+            <TabFade>
+              <GeneralTab productId={formProductId} canEdit={s.canEdit} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="knowledge">
-            <KnowledgeTab productId={formProductId} settings={s} />
+            <TabFade>
+              <KnowledgeTab productId={formProductId} settings={s} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="schedule">
-            <PostingTab productId={formProductId} settings={s} />
+            <TabFade>
+              <PostingTab productId={formProductId} settings={s} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="channels">
-            <ChannelsTab productId={formProductId} settings={s} />
+            <TabFade>
+              <ChannelsTab productId={formProductId} settings={s} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="claude">
-            <ClaudeTab productId={formProductId} settings={s} />
+            <TabFade>
+              <ClaudeTab productId={formProductId} settings={s} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="approvals">
-            <ApprovalsTab productId={formProductId} settings={s} />
+            <TabFade>
+              <ApprovalsTab productId={formProductId} settings={s} />
+            </TabFade>
           </TabsContent>
           <TabsContent value="tracking">
-            <TrackingTab settings={s} />
+            <TabFade>
+              <TrackingTab settings={s} />
+            </TabFade>
           </TabsContent>
         </div>
       </Tabs>
@@ -221,5 +237,21 @@ export function SettingsScreen() {
         }}
       />
     </Page>
+  );
+}
+
+/**
+ * Tab content fades in when its tab opens. Radix mounts only the active panel, so the old
+ * panel leaves at once and the new one fades in: a short cross-fade with no layout jump.
+ */
+function TabFade({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: DURATION.base, ease: EASE }}
+    >
+      {children}
+    </motion.div>
   );
 }

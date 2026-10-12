@@ -19,6 +19,7 @@ import {
 } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
+import { Stagger, StaggerItem } from '@/components/motion';
 import { IconButton } from '@/components/atoms/IconButton';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
@@ -27,7 +28,14 @@ import { Page } from '@/components/templates/Page';
 import { useSelectedProduct } from '@/lib/use-selected-product';
 import { cn } from '@/lib/utils';
 import { useSchedule } from '../api';
-import { formatTime, PLATFORM_ICONS, platformLabel, viewerTimeZone, zoneAbbr } from '../format';
+import {
+  formatTime,
+  PLATFORM_ICONS,
+  platformLabel,
+  viewerTimeZone,
+  viewerZoneName,
+  zoneAbbr,
+} from '../format';
 import { parseAnchor, visibleRange, type ScheduleView } from '../calendar';
 import { TabSkeleton } from './shared';
 
@@ -67,6 +75,12 @@ export function ScheduleScreen() {
     view === 'week'
       ? `Week of ${format(range.start, 'd MMM yyyy')}`
       : `${format(anchor, 'MMMM yyyy')}`;
+
+  const weeks = React.useMemo(() => {
+    const out: Date[][] = [];
+    for (let i = 0; i < range.days.length; i += 7) out.push(range.days.slice(i, i + 7));
+    return out;
+  }, [range.days]);
 
   const byDay = React.useMemo(() => {
     const map = new Map<string, { posts: ScheduleItem[]; slots: NextSlot[] }>();
@@ -146,104 +160,112 @@ export function ScheduleScreen() {
     );
   else {
     body = (
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_292px]">
         <section
           aria-label={`${title} calendar`}
           className="min-w-0 overflow-x-auto rounded-card border border-hairline bg-surface-card p-4"
           aria-busy={query.isFetching || undefined}
         >
-          <div className="grid min-w-[700px] grid-cols-7 gap-1.5">
-            {range.days.slice(0, 7).map((d) => (
-              <div
-                key={`h-${d.toISOString()}`}
-                className="px-2 pb-1 text-xs font-semibold text-muted"
-              >
-                {format(d, 'EEE')}
+          <div className="flex min-w-[560px] flex-col gap-2">
+            <div className="grid grid-cols-7">
+              {range.days.slice(0, 7).map((d) => (
+                <div key={`h-${d.toISOString()}`} className="px-2 text-xs font-semibold text-muted">
+                  {format(d, 'EEE')}
+                </div>
+              ))}
+            </div>
+            {weeks.map((week) => (
+              <div key={`w-${week[0]!.toISOString()}`} className="grid grid-cols-7">
+                {week.map((d) => {
+                  const key = format(d, 'yyyy-MM-dd');
+                  const cell = byDay.get(key) ?? { posts: [], slots: [] };
+                  const outside = view === 'month' && !isSameMonth(d, anchor);
+                  const today = isSameDay(d, new Date());
+                  const limit = view === 'month' ? 3 : 50;
+                  const entries = [
+                    ...cell.posts.map((p) => ({ kind: 'post' as const, at: p.at, post: p })),
+                    ...cell.slots.map((s) => ({ kind: 'slot' as const, at: s.at, slot: s })),
+                  ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+                  const shown = entries.slice(0, limit);
+                  return (
+                    <div
+                      key={key}
+                      className={cn(
+                        'flex min-w-0 flex-col gap-1.5 border border-hairline p-2',
+                        view === 'month' ? 'min-h-[128px]' : 'min-h-[320px]',
+                      )}
+                      aria-label={`${format(d, 'EEEE d MMMM')}: ${cell.posts.length} posts, ${cell.slots.length} open slots`}
+                    >
+                      <span
+                        className={cn(
+                          'text-xs font-semibold',
+                          today
+                            ? '-ml-1 inline-flex size-6 items-center justify-center rounded-full bg-joy text-ink'
+                            : outside
+                              ? 'text-muted'
+                              : 'text-ink',
+                        )}
+                      >
+                        {format(d, 'd')}
+                      </span>
+                      <Stagger className="flex min-w-0 flex-col gap-1.5">
+                        {shown.map((e) => (
+                          <StaggerItem
+                            key={
+                              e.kind === 'post' ? e.post.postId : `${e.slot.slotId}-${e.slot.at}`
+                            }
+                            className="min-w-0"
+                          >
+                            {e.kind === 'post' ? (
+                              <PostChip item={e.post} viewer={viewer} detailed={view === 'week'} />
+                            ) : (
+                              <SlotChip slot={e.slot} viewer={viewer} detailed={view === 'week'} />
+                            )}
+                          </StaggerItem>
+                        ))}
+                      </Stagger>
+                      {entries.length > shown.length ? (
+                        <button
+                          type="button"
+                          className="focus-ring w-fit rounded-md px-1 text-left text-2xs font-semibold text-muted hover:text-ink"
+                          onClick={() => go({ view: 'week', date: d })}
+                        >
+                          {entries.length - shown.length} more
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             ))}
-            {range.days.map((d) => {
-              const key = format(d, 'yyyy-MM-dd');
-              const cell = byDay.get(key) ?? { posts: [], slots: [] };
-              const outside = view === 'month' && !isSameMonth(d, anchor);
-              const today = isSameDay(d, new Date());
-              const limit = view === 'month' ? 3 : 50;
-              const entries = [
-                ...cell.posts.map((p) => ({ kind: 'post' as const, at: p.at, post: p })),
-                ...cell.slots.map((s) => ({ kind: 'slot' as const, at: s.at, slot: s })),
-              ].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
-              const shown = entries.slice(0, limit);
-              return (
-                <div
-                  key={key}
-                  className={cn(
-                    'flex flex-col gap-1 rounded-tile border border-hairline p-1.5',
-                    view === 'month' ? 'min-h-[104px]' : 'min-h-[320px]',
-                    outside && 'bg-surface-base',
-                  )}
-                  aria-label={`${format(d, 'EEEE d MMMM')}: ${cell.posts.length} posts, ${cell.slots.length} open slots`}
-                >
-                  <span
-                    className={cn(
-                      'inline-flex size-6 items-center justify-center rounded-full text-xs font-semibold',
-                      today ? 'bg-joy text-ink' : outside ? 'text-muted' : 'text-ink',
-                    )}
-                  >
-                    {format(d, 'd')}
-                  </span>
-                  {shown.map((e) =>
-                    e.kind === 'post' ? (
-                      <PostChip
-                        key={e.post.postId}
-                        item={e.post}
-                        viewer={viewer}
-                        detailed={view === 'week'}
-                      />
-                    ) : (
-                      <SlotChip
-                        key={`${e.slot.slotId}-${e.slot.at}`}
-                        slot={e.slot}
-                        viewer={viewer}
-                      />
-                    ),
-                  )}
-                  {entries.length > shown.length ? (
-                    <button
-                      type="button"
-                      className="focus-ring rounded-md px-1 text-left text-2xs font-semibold text-muted hover:text-ink"
-                      onClick={() => go({ view: 'week', date: d })}
-                    >
-                      {entries.length - shown.length} more
-                    </button>
-                  ) : null}
-                </div>
-              );
-            })}
           </div>
         </section>
         <aside className="flex flex-col gap-4">
           <Panel
-            title="By channel"
-            description={`Times in your zone (${viewer.replace(/_/g, ' ')}).`}
+            title={<span className="text-base">By channel</span>}
+            description={`Times in your zone (${viewerZoneName(viewer)}).`}
           >
             {counts.length === 0 ? (
               <p className="text-sm text-muted">
                 Nothing scheduled in this range, and no open slots.
               </p>
             ) : (
-              <ul className="flex flex-col gap-2.5">
+              <Stagger as="ul" className="flex flex-col gap-3">
                 {counts.map(([p, c]) => (
-                  <li key={p} className="flex items-center gap-2.5 text-13">
-                    <Icon icon={PLATFORM_ICONS[p]} size={18} />
-                    <span className="flex-1 font-semibold text-ink">{platformLabel(p)}</span>
-                    <span className="text-muted">
-                      {c.scheduled} going out · {c.published} live · {c.open} open
+                  <StaggerItem as="li" key={p} className="flex items-start gap-2.5">
+                    <Icon icon={PLATFORM_ICONS[p]} size={18} className="mt-px shrink-0" />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-13 font-semibold text-ink">{platformLabel(p)}</span>
+                      <span className="text-xs text-muted">
+                        {c.scheduled} going out · {c.published} live · {c.open} open
+                      </span>
                     </span>
-                  </li>
+                  </StaggerItem>
                 ))}
-              </ul>
+              </Stagger>
             )}
           </Panel>
-          <Panel tone="sunken" title="Key">
+          <Panel tone="sunken" title={<span className="text-base">Key</span>}>
             <ul className="flex flex-col gap-2 text-xs">
               {(['scheduled', 'published', 'manual_pending', 'failed'] as const).map((s) => (
                 <li key={s} className="flex items-center gap-2">
@@ -289,6 +311,13 @@ export function ScheduleScreen() {
   );
 }
 
+/** Audience time, only when the audience zone differs from the viewer's (Kolkata = Calcutta). */
+function audienceTime(at: string, audienceTz: string, viewer: string): string | null {
+  const name = zoneAbbr(at, audienceTz);
+  if (audienceTz === viewer || name === zoneAbbr(at, viewer)) return null;
+  return `${formatTime(at, audienceTz)} ${name}`;
+}
+
 function PostChip({
   item,
   viewer,
@@ -299,10 +328,7 @@ function PostChip({
   detailed: boolean;
 }) {
   const style = STATUS_STYLE[item.status];
-  const audience =
-    item.audienceTimezone !== viewer
-      ? `${formatTime(item.at, item.audienceTimezone)} ${zoneAbbr(item.at, item.audienceTimezone)}`
-      : null;
+  const audience = audienceTime(item.at, item.audienceTimezone, viewer);
   const label = `${platformLabel(item.platform)} ${item.briefCode} ${style.label} at ${formatTime(item.at, viewer)}${audience ? `, audience ${audience}` : ''}`;
   return (
     <Link
@@ -310,15 +336,15 @@ function PostChip({
       aria-label={label}
       title={`${item.briefTitle} · ${item.channelName}${audience ? ` · audience ${audience}` : ''}`}
       className={cn(
-        'focus-ring flex flex-col gap-0.5 rounded-md px-1.5 py-1 text-2xs font-semibold',
+        'focus-ring flex min-w-0 flex-col gap-0.5 rounded-md px-1.5 py-1.5 text-[10px] font-semibold leading-[1.4] transition-[filter] hover:brightness-95',
         style.chip,
       )}
     >
-      <span className="flex items-center gap-1">
-        <Icon icon={PLATFORM_ICONS[item.platform]} size={12} />
-        <span>{formatTime(item.at, viewer)}</span>
-        <span className="truncate">{item.briefCode}</span>
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap">
+        <Icon icon={PLATFORM_ICONS[item.platform]} size={12} className="shrink-0" />
+        {formatTime(item.at, viewer)}
       </span>
+      <span className="truncate">{item.briefCode}</span>
       {detailed ? (
         <>
           <span className="line-clamp-2 font-medium">{item.briefTitle}</span>
@@ -330,19 +356,28 @@ function PostChip({
   );
 }
 
-function SlotChip({ slot, viewer }: { slot: NextSlot; viewer: string }) {
-  const audience =
-    slot.audienceTimezone !== viewer
-      ? ` · ${formatTime(slot.at, slot.audienceTimezone)} ${zoneAbbr(slot.at, slot.audienceTimezone)}`
-      : '';
+function SlotChip({
+  slot,
+  viewer,
+  detailed,
+}: {
+  slot: NextSlot;
+  viewer: string;
+  detailed: boolean;
+}) {
+  const audience = audienceTime(slot.at, slot.audienceTimezone, viewer);
   return (
     <span
-      className="flex items-center gap-1 rounded-md border border-dashed border-strong px-1.5 py-1 text-2xs font-medium text-muted"
-      title={`Open ${platformLabel(slot.platform)} slot${slot.label ? `: ${slot.label}` : ''}`}
+      className="flex min-w-0 flex-col gap-0.5 rounded-md border border-dashed border-strong px-1.5 py-1.5 text-[10px] font-medium leading-[1.4] text-muted"
+      title={`Open ${platformLabel(slot.platform)} slot${slot.label ? `: ${slot.label}` : ''}${audience ? ` · audience ${audience}` : ''}`}
     >
-      <Icon icon={PLATFORM_ICONS[slot.platform]} size={12} label={platformLabel(slot.platform)} />
-      Open {formatTime(slot.at, viewer)}
-      {audience}
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap font-semibold">
+        <Icon icon={PLATFORM_ICONS[slot.platform]} size={12} label={platformLabel(slot.platform)} />
+        {formatTime(slot.at, viewer)}
+      </span>
+      <span className={detailed ? undefined : 'truncate'}>
+        Open{audience ? ` · ${audience}` : ' slot'}
+      </span>
     </span>
   );
 }

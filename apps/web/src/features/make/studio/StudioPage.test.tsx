@@ -13,12 +13,30 @@ const HEALTH = {
   version: '0.1.0',
   time: '2026-10-12T10:00:00.000Z',
   checks: {},
-  features: { claude: true, storage: true, meta: false, google: false, linkedin: false, github: false, smtp: false },
+  features: {
+    claude: true,
+    storage: true,
+    meta: false,
+    google: false,
+    linkedin: false,
+    github: false,
+    smtp: false,
+  },
 };
 const TOOLS = {
   items: [
-    { key: 'figma', name: 'Figma', description: 'Posters and screens', url: 'https://www.figma.com/' },
-    { key: 'capcut', name: 'CapCut', description: 'Finish, trends, music', url: 'https://www.capcut.com/' },
+    {
+      key: 'figma',
+      name: 'Figma',
+      description: 'Posters and screens',
+      url: 'https://www.figma.com/',
+    },
+    {
+      key: 'capcut',
+      name: 'CapCut',
+      description: 'Finish, trends, music',
+      url: 'https://www.capcut.com/',
+    },
     { key: 'reel-studio', name: 'Reel studio', description: 'Code-rendered motion', url: null },
   ],
 };
@@ -50,7 +68,8 @@ function routes(assets: unknown[], brief = makeBrief()) {
     [`GET /briefs/${BRIEF_ID}/render-jobs`]: () => jsonResponse(JOBS),
     'GET /handoff-tools': () => jsonResponse(TOOLS),
     'GET /health': () => jsonResponse(HEALTH),
-    [`GET /assets/${makeAsset().id}/url`]: () => jsonResponse({ url: 'https://s3/get/master.mp4', expiresIn: 900 }),
+    [`GET /assets/${makeAsset().id}/url`]: () =>
+      jsonResponse({ url: 'https://s3/get/master.mp4', expiresIn: 900 }),
   };
 }
 
@@ -69,10 +88,18 @@ describe('Studio helpers', () => {
     const brief = makeBrief();
     expect(canSendForReview(brief, [])).toBe(false);
     expect(canSendForReview(brief, [makeAsset({ status: 'uploading' })])).toBe(false);
-    expect(canSendForReview(brief, [makeAsset({ kind: 'poster', mimeType: 'image/png' })])).toBe(false);
+    expect(canSendForReview(brief, [makeAsset({ kind: 'poster', mimeType: 'image/png' })])).toBe(
+      false,
+    );
     expect(canSendForReview(brief, [makeAsset()])).toBe(true);
     expect(canSendForReview(makeBrief({ stage: 'made' }), [makeAsset()])).toBe(false);
-    expect(pickMaster([makeAsset({ id: 'a', ratio: '4:5' }), makeAsset({ id: 'b', ratio: '9:16' })], brief, '9:16')?.id).toBe('b');
+    expect(
+      pickMaster(
+        [makeAsset({ id: 'a', ratio: '4:5' }), makeAsset({ id: 'b', ratio: '9:16' })],
+        brief,
+        '9:16',
+      )?.id,
+    ).toBe('b');
   });
 });
 
@@ -90,9 +117,17 @@ describe('StudioPage', () => {
     expect(screen.getByRole('img', { name: /Video: Beat 3/ })).toBeInTheDocument();
     expect(await screen.findByText('Running 62%')).toBeInTheDocument();
     expect(await screen.findByText('Not set up')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Open Figma in a new tab' })).toHaveAttribute('href', 'https://www.figma.com/');
-    expect(await screen.findByRole('link', { name: 'Open in CapCut' })).toHaveAttribute('href', 'https://www.capcut.com/');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled());
+    expect(screen.getByRole('link', { name: 'Open Figma in a new tab' })).toHaveAttribute(
+      'href',
+      'https://www.figma.com/',
+    );
+    expect(await screen.findByRole('link', { name: 'Open in CapCut' })).toHaveAttribute(
+      'href',
+      'https://www.capcut.com/',
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Send for review' })).toBeEnabled(),
+    );
   });
 
   it('keeps Send for review disabled without a ready master', async () => {
@@ -106,14 +141,18 @@ describe('StudioPage', () => {
   it('sends for review and shows the stage', async () => {
     const fetchSpy = mockFetch({
       ...routes([makeAsset()]),
-      [`POST /briefs/${BRIEF_ID}/send-for-review`]: () => jsonResponse(makeBrief({ stage: 'made' })),
+      [`POST /briefs/${BRIEF_ID}/send-for-review`]: () =>
+        jsonResponse(makeBrief({ stage: 'made' })),
     });
     renderStudio();
     const btn = await screen.findByRole('button', { name: 'Send for review' });
     await waitFor(() => expect(btn).toBeEnabled());
     await userEvent.click(btn);
     expect((await screen.findAllByText('Sent for review')).length).toBeGreaterThan(0);
-    expect(await screen.findByRole('link', { name: 'Open review' })).toHaveAttribute('href', `/review/${BRIEF_ID}`);
+    expect(await screen.findByRole('link', { name: 'Open review' })).toHaveAttribute(
+      'href',
+      `/review/${BRIEF_ID}`,
+    );
     const call = fetchSpy.mock.calls.find(([, init]) => init?.method === 'POST');
     expect(JSON.parse(String(call![1]!.body))).toEqual({ version: 1 });
   });
@@ -128,7 +167,11 @@ describe('StudioPage', () => {
   });
 
   it('shows Storage not connected when storage is off', async () => {
-    mockFetch({ ...routes([]), 'GET /health': () => jsonResponse({ ...HEALTH, features: { ...HEALTH.features, storage: false } }) });
+    mockFetch({
+      ...routes([]),
+      'GET /health': () =>
+        jsonResponse({ ...HEALTH, features: { ...HEALTH.features, storage: false } }),
+    });
     renderStudio();
     expect(await screen.findByText('Storage not connected')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Upload master' })).not.toBeInTheDocument();
@@ -136,7 +179,19 @@ describe('StudioPage', () => {
 
   it('lists briefs ready to make on /studio', async () => {
     const fetchSpy = mockFetch({
-      'GET /products': () => jsonResponse({ items: [{ id: PRODUCT_ID, name: 'Humini Live', slug: 'live', status: 'in_build', color: '#ff9a00' }], total: 1 }),
+      'GET /products': () =>
+        jsonResponse({
+          items: [
+            {
+              id: PRODUCT_ID,
+              name: 'Humini Live',
+              slug: 'live',
+              status: 'in_build',
+              color: '#ff9a00',
+            },
+          ],
+          total: 1,
+        }),
       'GET /briefs': () => jsonResponse({ items: [makeBrief()], total: 1 }),
     });
     const { router } = renderStudio('/studio');
@@ -149,7 +204,19 @@ describe('StudioPage', () => {
 
   it('explains how to get a brief into the picker when none is ready', async () => {
     mockFetch({
-      'GET /products': () => jsonResponse({ items: [{ id: PRODUCT_ID, name: 'Humini Live', slug: 'live', status: 'in_build', color: '#ff9a00' }], total: 1 }),
+      'GET /products': () =>
+        jsonResponse({
+          items: [
+            {
+              id: PRODUCT_ID,
+              name: 'Humini Live',
+              slug: 'live',
+              status: 'in_build',
+              color: '#ff9a00',
+            },
+          ],
+          total: 1,
+        }),
       'GET /briefs': () => jsonResponse({ items: [], total: 0 }),
     });
     renderStudio('/studio');

@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Icon, type IconComponent } from '@/components/atoms/Icon';
@@ -11,16 +12,19 @@ export interface NavItemViewProps {
   className?: string;
 }
 
+/** 42px high (Figma 44px): two extra items (Schedule, Settings) must still fit a 960px tall screen. */
 const base =
-  'focus-ring-dark flex h-11 w-full items-center gap-3 rounded-tile px-3.5 py-2.5 text-sm transition-colors';
+  'focus-ring-dark relative flex h-[42px] w-full items-center gap-3 rounded-tile px-3.5 text-sm transition-colors duration-150';
 const activeClass = 'bg-joy font-semibold text-ink';
+/** In the live sidebar the orange pill is a shared layout element, so it slides between items. */
+const activeLinkClass = 'font-semibold text-ink';
 const idleClass = 'font-medium text-media-text/80 hover:bg-white/[0.06] hover:text-media-text';
 
 function Content({ icon, label, count }: Pick<NavItemViewProps, 'icon' | 'label' | 'count'>) {
   return (
     <>
-      <Icon icon={icon} size={20} />
-      <span className="truncate">
+      <Icon icon={icon} size={20} className="relative" />
+      <span className="relative truncate">
         {label}
         {count ? (
           <>
@@ -56,9 +60,21 @@ export function NavItem({ to, end, icon, label, count, onNavigate, className }: 
       to={to}
       end={end ?? false}
       onClick={onNavigate}
-      className={({ isActive }) => cn(base, isActive ? activeClass : idleClass, className)}
+      className={({ isActive }) => cn(base, isActive ? activeLinkClass : idleClass, className)}
     >
-      <Content icon={icon} label={label} count={count} />
+      {({ isActive }) => (
+        <>
+          {isActive ? (
+            <motion.span
+              layoutId="nav-active-pill"
+              aria-hidden="true"
+              className="absolute inset-0 rounded-tile bg-joy"
+              transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+            />
+          ) : null}
+          <Content icon={icon} label={label} count={count} />
+        </>
+      )}
     </NavLink>
   );
 }

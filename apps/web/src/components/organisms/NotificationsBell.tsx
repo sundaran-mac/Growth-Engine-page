@@ -1,11 +1,16 @@
 import { Bell } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icon } from '@/components/atoms/Icon';
 import { isApiError } from '@/lib/api';
-import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '@/lib/shell-queries';
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+} from '@/lib/shell-queries';
 import { cn } from '@/lib/utils';
 
 function timeAgo(iso: string): string {
@@ -28,17 +33,34 @@ export function NotificationsBell() {
   const markAll = useMarkAllNotificationsRead();
   const items = query.data?.items ?? [];
   const unread = items.filter((n) => !n.readAt).length;
-  const notReady = isApiError(query.error) && (query.error.status === 404 || query.error.status === 501);
+  // Pulse the dot once when the unread count goes up after the first load (not on every refetch).
+  const prevUnread = React.useRef<number | null>(null);
+  const [pulse, setPulse] = React.useState(0);
+  React.useEffect(() => {
+    if (!query.data) return;
+    if (prevUnread.current !== null && unread > prevUnread.current) setPulse((n) => n + 1);
+    prevUnread.current = unread;
+  }, [query.data, unread]);
+  const notReady =
+    isApiError(query.error) && (query.error.status === 404 || query.error.status === 501);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-        className="focus-ring relative inline-flex size-10 shrink-0 items-center justify-center rounded-pill border border-hairline bg-surface-card text-ink transition-colors hover:bg-surface-sunken"
+        className="focus-ring relative inline-flex size-10 shrink-0 items-center justify-center rounded-pill border border-hairline bg-surface-card text-ink transition-[color,background-color,border-color,box-shadow,filter,transform] duration-150 ease-out motion-safe:active:scale-[0.94] hover:bg-surface-sunken"
       >
         <Icon icon={Bell} size={18} />
         {unread ? (
-          <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-joy ring-2 ring-surface-card" />
+          <motion.span
+            key={pulse}
+            aria-hidden="true"
+            data-pulse={pulse || undefined}
+            className="absolute right-2 top-2 size-2 rounded-full bg-joy ring-2 ring-surface-card"
+            initial={pulse ? { scale: 1 } : false}
+            animate={pulse ? { scale: [1, 1.7, 1] } : { scale: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+          />
         ) : null}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
@@ -86,7 +108,10 @@ export function NotificationsBell() {
                   >
                     <span
                       aria-hidden="true"
-                      className={cn('mt-1.5 size-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : 'bg-joy')}
+                      className={cn(
+                        'mt-1.5 size-2 shrink-0 rounded-full',
+                        n.readAt ? 'bg-transparent' : 'bg-joy',
+                      )}
                     />
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-13 font-semibold text-ink">

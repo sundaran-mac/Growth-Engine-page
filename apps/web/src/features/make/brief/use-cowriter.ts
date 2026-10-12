@@ -23,13 +23,22 @@ export function patchForDraft(
       if (mode === 'use') return { hook: draft.text };
       return s.altHooks.includes(draft.text)
         ? {}
-        : { claudeSuggestions: { ...s, altHooks: [...s.altHooks, draft.text], generatedAt: new Date().toISOString() } };
+        : {
+            claudeSuggestions: {
+              ...s,
+              altHooks: [...s.altHooks, draft.text],
+              generatedAt: new Date().toISOString(),
+            },
+          };
     case 'tamil_caption': {
       const language = draft.language ?? 'ta';
       return {
         claudeSuggestions: {
           ...s,
-          captions: [...s.captions.filter((c) => c.language !== language), { language, text: draft.text }],
+          captions: [
+            ...s.captions.filter((c) => c.language !== language),
+            { language, text: draft.text },
+          ],
           generatedAt: new Date().toISOString(),
         },
       };
@@ -37,7 +46,13 @@ export function patchForDraft(
     case 'broll':
       return s.bRoll.includes(draft.text)
         ? {}
-        : { claudeSuggestions: { ...s, bRoll: [...s.bRoll, draft.text], generatedAt: new Date().toISOString() } };
+        : {
+            claudeSuggestions: {
+              ...s,
+              bRoll: [...s.bRoll, draft.text],
+              generatedAt: new Date().toISOString(),
+            },
+          };
   }
 }
 
@@ -48,21 +63,31 @@ export function draftSummary(drafts: CowriterDraft[]): string {
   const hooks = drafts.filter((d) => d.kind === 'alt_hooks');
   const broll = drafts.filter((d) => d.kind === 'broll');
   if (captions.length > 0) parts.push('Tamil caption drafted');
-  if (hooks.length > 0) parts.push(`${hooks.length} alternative hook${hooks.length === 1 ? '' : 's'}`);
+  if (hooks.length > 0)
+    parts.push(`${hooks.length} alternative hook${hooks.length === 1 ? '' : 's'}`);
   if (broll.length > 0) parts.push(`B-roll list: ${broll.map((d) => d.text).join(', ')}`);
   return parts.join(' · ');
 }
 
 export function assistErrorMessage(err: unknown): { title: string; description?: string } {
   if (isApiError(err)) {
-    if (err.code === 'FEATURE_DISABLED') return { title: 'Claude is not connected', description: 'Connect Claude on Integrations.' };
-    if (err.code === 'CLAUDE_CAP_REACHED') return { title: 'Claude budget used up', description: 'This product has used its Claude budget for this month.' };
+    if (err.code === 'FEATURE_DISABLED')
+      return { title: 'Claude is not connected', description: 'Connect Claude on Integrations.' };
+    if (err.code === 'CLAUDE_CAP_REACHED')
+      return {
+        title: 'Claude budget used up',
+        description: 'This product has used its Claude budget for this month.',
+      };
     return { title: err.title, ...(err.detail ? { description: err.detail } : {}) };
   }
   return { title: 'Claude did not answer', description: 'Please try again.' };
 }
 
-export function useCowriter(briefId: string, values: BriefEditable, update: (p: BriefPatch, o?: { immediate?: boolean }) => void) {
+export function useCowriter(
+  briefId: string,
+  values: BriefEditable,
+  update: (p: BriefPatch, o?: { immediate?: boolean }) => void,
+) {
   const assist = useAssist(briefId);
   const drafts = useBriefDrafts(briefId);
   const setKind = useCowriterStore((s) => s.setKind);
@@ -79,8 +104,12 @@ export function useCowriter(briefId: string, values: BriefEditable, update: (p: 
           kind,
           res.suggestions.map((s) => ({ text: s.text, language: s.language })),
         );
-        if (res.suggestions.length === 0) toast.info(`Claude had no usable ${ASSIST_KIND_LABELS[kind].toLowerCase()} this time.`);
-        if (res.dropped > 0) toast.info(`${res.dropped} draft${res.dropped === 1 ? '' : 's'} dropped: they used never-say words.`);
+        if (res.suggestions.length === 0)
+          toast.info(`Claude had no usable ${ASSIST_KIND_LABELS[kind].toLowerCase()} this time.`);
+        if (res.dropped > 0)
+          toast.info(
+            `${res.dropped} draft${res.dropped === 1 ? '' : 's'} dropped: they used never-say words.`,
+          );
       } catch (err) {
         const m = assistErrorMessage(err);
         toast.error(m.title, m.description ? { description: m.description } : undefined);

@@ -12,7 +12,13 @@ import {
 import { Icon } from '@/components/atoms/Icon';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { formatApprovers, formatChannels, formatLanguages, formatRatios, toggleIn } from './labels';
 import type { BriefEditable, BriefPatch } from './use-brief-autosave';
@@ -32,17 +38,28 @@ function FactCard({
     <>
       <span className="flex items-center gap-1 text-2xs font-semibold uppercase tracking-kicker text-muted">
         {label}
-        {!readOnly ? <Icon icon={PencilSimple} size={12} className="ml-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" /> : null}
+        {!readOnly ? (
+          <Icon
+            icon={PencilSimple}
+            size={12}
+            className="ml-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+          />
+        ) : null}
       </span>
       <span className="text-13 font-semibold text-ink">{value}</span>
     </>
   );
-  const cardClass = 'group flex min-w-0 flex-col gap-1 rounded-card border border-hairline bg-surface-card p-4 text-left';
+  const cardClass =
+    'group flex min-w-0 flex-col gap-1 rounded-card border border-hairline bg-surface-card p-4 text-left';
   if (readOnly) return <div className={cardClass}>{body}</div>;
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" aria-label={`${label}: ${value}. Change`} className={cn(cardClass, 'focus-ring hover:border-strong')}>
+        <button
+          type="button"
+          aria-label={`${label}: ${value}. Change`}
+          className={cn(cardClass, 'focus-ring hover:border-strong')}
+        >
           {body}
         </button>
       </PopoverTrigger>
@@ -80,7 +97,9 @@ function ToggleChips<T extends string>({
               onClick={() => onChange(toggleIn(selected, v, all))}
               className={cn(
                 'focus-ring rounded-pill border px-3 py-1 text-xs font-semibold transition-colors',
-                on ? 'border-joy bg-joy text-ink' : 'border-hairline bg-surface-card text-muted hover:text-ink',
+                on
+                  ? 'border-joy bg-joy text-ink'
+                  : 'border-hairline bg-surface-card text-muted hover:text-ink',
               )}
             >
               {labelOf(v)}
@@ -149,9 +168,19 @@ export function BriefFactsRow({ values, readOnly, options, people, onChange }: B
   return (
     <div className="grid w-full grid-cols-2 gap-3 md:grid-cols-4">
       <FactCard label="Ratios" value={formatRatios(values.ratios)} readOnly={readOnly}>
-        <ToggleChips legend="Ratios" all={RATIOS} selected={values.ratios} labelOf={(r) => r} onChange={(ratios) => onChange({ ratios }, { immediate: true })} />
+        <ToggleChips
+          legend="Ratios"
+          all={RATIOS}
+          selected={values.ratios}
+          labelOf={(r) => r}
+          onChange={(ratios) => onChange({ ratios }, { immediate: true })}
+        />
       </FactCard>
-      <FactCard label="Captions" value={formatLanguages(values.captionLanguages)} readOnly={readOnly}>
+      <FactCard
+        label="Captions"
+        value={formatLanguages(values.captionLanguages)}
+        readOnly={readOnly}
+      >
         <ToggleChips
           legend="Caption languages"
           all={LANGUAGES}

@@ -191,7 +191,9 @@ export async function runUpload(
           if (attempt < attempts) await delay(PART_RETRY_DELAY_MS * attempt, signal);
         }
       }
-      throw lastError instanceof Error ? lastError : new UploadFailedError('A part did not upload.');
+      throw lastError instanceof Error
+        ? lastError
+        : new UploadFailedError('A part did not upload.');
     };
 
     const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
@@ -265,7 +267,11 @@ export function readMediaInfo(file: File, timeoutMs = 5000): Promise<MediaInfo> 
     } else {
       const img = new Image();
       img.onload = () =>
-        finish({ durationMs: null, width: img.naturalWidth || null, height: img.naturalHeight || null });
+        finish({
+          durationMs: null,
+          width: img.naturalWidth || null,
+          height: img.naturalHeight || null,
+        });
       img.onerror = () => finish(EMPTY_INFO);
       img.src = url;
     }

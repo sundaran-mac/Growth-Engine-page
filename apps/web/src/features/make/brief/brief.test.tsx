@@ -8,7 +8,14 @@ import BriefPage from '@/pages/BriefPage';
 import BriefsPage from '@/pages/BriefsPage';
 import { useSessionStore } from '@/stores/session';
 import { useUiStore } from '@/stores/ui';
-import { createTestQueryClient, jsonResponse, ME, mockFetch, renderWithProviders, renderWithRouter } from '@/test/utils';
+import {
+  createTestQueryClient,
+  jsonResponse,
+  ME,
+  mockFetch,
+  renderWithProviders,
+  renderWithRouter,
+} from '@/test/utils';
 import { makeKeys } from '../api';
 import { ClaimCheckPanel } from './ClaimCheckPanel';
 import { draftSummary, patchForDraft } from './use-cowriter';
@@ -37,7 +44,9 @@ function makeBrief(overrides: Partial<Brief> = {}): Brief {
     claimsApprover: null,
     brandApprover: { id: '44444444-4444-4444-8444-444444444444', name: 'Elan', initials: 'E' },
     version: 3,
-    claimFlags: [{ rule: 'never_say', status: 'pass', message: 'No never-say words', suggestion: null }],
+    claimFlags: [
+      { rule: 'never_say', status: 'pass', message: 'No never-say words', suggestion: null },
+    ],
     claims: [],
     claudeSuggestions: { captions: [], altHooks: [], bRoll: [], generatedAt: null },
     frozenAt: null,
@@ -48,7 +57,15 @@ function makeBrief(overrides: Partial<Brief> = {}): Brief {
 }
 
 const PRODUCTS = {
-  items: [{ id: PRODUCT_ID, name: 'Humini Live', slug: 'humini-live', status: 'in_build', color: '#ff9a00' }],
+  items: [
+    {
+      id: PRODUCT_ID,
+      name: 'Humini Live',
+      slug: 'humini-live',
+      status: 'in_build',
+      color: '#ff9a00',
+    },
+  ],
   total: 1,
 };
 
@@ -81,8 +98,12 @@ describe('useBriefAutosave', () => {
     expect(result.current.status).toBe('dirty');
 
     await waitFor(() => expect(result.current.status).toBe('saved'));
-    expect(bodies).toEqual([{ version: 3, updatedAt: '2026-10-10T10:00:00.000Z', hook: 'New hook' }]);
-    expect(client.getQueryData<Brief>(makeKeys.brief(BRIEF_ID))?.updatedAt).toBe('2026-10-10T10:00:05.000Z');
+    expect(bodies).toEqual([
+      { version: 3, updatedAt: '2026-10-10T10:00:00.000Z', hook: 'New hook' },
+    ]);
+    expect(client.getQueryData<Brief>(makeKeys.brief(BRIEF_ID))?.updatedAt).toBe(
+      '2026-10-10T10:00:05.000Z',
+    );
   });
 
   it('stops and reports a conflict on 409 VERSION_CONFLICT', async () => {
@@ -92,7 +113,13 @@ describe('useBriefAutosave', () => {
       [`PATCH /briefs/${BRIEF_ID}`]: () => {
         calls += 1;
         return jsonResponse(
-          { type: 'x', title: 'Conflict', status: 409, code: 'VERSION_CONFLICT', detail: 'Changed by someone else.' },
+          {
+            type: 'x',
+            title: 'Conflict',
+            status: 409,
+            code: 'VERSION_CONFLICT',
+            detail: 'Changed by someone else.',
+          },
           409,
           'application/problem+json',
         );
@@ -125,8 +152,18 @@ describe('ClaimCheckPanel', () => {
   it('renders pass, warn and fail rows with suggestions', () => {
     const flags: ClaimFlag[] = [
       { rule: 'never_say', status: 'pass', message: 'No never-say words', suggestion: null },
-      { rule: 'spec_cited', status: 'warn', message: 'A behaviour has no spec.', suggestion: 'Cite spec 006' },
-      { rule: 'never_say', status: 'fail', message: '"anonymous" is on the never-say list.', suggestion: null },
+      {
+        rule: 'spec_cited',
+        status: 'warn',
+        message: 'A behaviour has no spec.',
+        suggestion: 'Cite spec 006',
+      },
+      {
+        rule: 'never_say',
+        status: 'fail',
+        message: '"anonymous" is on the never-say list.',
+        suggestion: null,
+      },
     ];
     renderWithProviders(<ClaimCheckPanel flags={flags} />);
     const items = screen.getAllByRole('listitem');
@@ -163,13 +200,22 @@ describe('co-writer helpers', () => {
         },
       }),
     );
-    const patch = patchForDraft(values, { id: '1', kind: 'tamil_caption', text: 'new', language: 'ta' });
+    const patch = patchForDraft(values, {
+      id: '1',
+      kind: 'tamil_caption',
+      text: 'new',
+      language: 'ta',
+    });
     expect(patch.claudeSuggestions?.captions).toEqual([
       { language: 'en', text: 'EN' },
       { language: 'ta', text: 'new' },
     ]);
-    expect(patchForDraft(values, { id: '2', kind: 'broll', text: 'a', language: null })).toEqual({});
-    expect(patchForDraft(values, { id: '3', kind: 'alt_hooks', text: 'Hook B', language: null })).toEqual({ hook: 'Hook B' });
+    expect(patchForDraft(values, { id: '2', kind: 'broll', text: 'a', language: null })).toEqual(
+      {},
+    );
+    expect(
+      patchForDraft(values, { id: '3', kind: 'alt_hooks', text: 'Hook B', language: null }),
+    ).toEqual({ hook: 'Hook B' });
   });
 });
 
@@ -221,21 +267,46 @@ describe('BriefPage', () => {
     mockFetch({
       'GET /products': () => jsonResponse(PRODUCTS),
       [`GET /briefs/${BRIEF_ID}`]: () => jsonResponse(brief),
-      [`GET /briefs/${BRIEF_ID}/options`]: () => jsonResponse({ owners: [], claimsApprovers: [], brandApprovers: [] }),
+      [`GET /briefs/${BRIEF_ID}/options`]: () =>
+        jsonResponse({ owners: [], claimsApprovers: [], brandApprovers: [] }),
       'GET /health': () =>
-        jsonResponse({ features: { claude: false, storage: true, meta: false, google: false, linkedin: false, github: false, smtp: false } }),
+        jsonResponse({
+          features: {
+            claude: false,
+            storage: true,
+            meta: false,
+            google: false,
+            linkedin: false,
+            github: false,
+            smtp: false,
+          },
+        }),
     });
-    return renderWithRouter([{ path: '/briefs/:briefId', element: <BriefPage /> }], [`/briefs/${BRIEF_ID}`]);
+    return renderWithRouter(
+      [{ path: '/briefs/:briefId', element: <BriefPage /> }],
+      [`/briefs/${BRIEF_ID}`],
+    );
   }
 
   it('shows the Figma layout and disables Freeze while a red flag is open', async () => {
     renderBrief(
       makeBrief({
-        claimFlags: [{ rule: 'never_say', status: 'fail', message: '"anonymous" is on the never-say list.', suggestion: null }],
+        claimFlags: [
+          {
+            rule: 'never_say',
+            status: 'fail',
+            message: '"anonymous" is on the never-say list.',
+            suggestion: null,
+          },
+        ],
       }),
     );
-    expect(await screen.findByRole('heading', { name: 'REEL-031 · 60 seconds with Elan, ep. 1' })).toBeInTheDocument();
-    expect(await screen.findByText('Brief · Humini Live · M1 Founder film · owner: Jeeva')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'REEL-031 · 60 seconds with Elan, ep. 1' }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Brief · Humini Live · M1 Founder film · owner: Jeeva'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Freeze brief' })).toBeDisabled();
     expect(screen.getByText('Fix the red flags in the claim check first.')).toBeInTheDocument();
     expect(screen.getByText('9:16 · 4:5')).toBeInTheDocument();
@@ -243,7 +314,10 @@ describe('BriefPage', () => {
     expect(screen.getByText('IG · YT · LinkedIn')).toBeInTheDocument();
     expect(await screen.findByText(/Claude is not connected/)).toBeInTheDocument();
     const tracker = screen.getByRole('list', { name: 'Brief stage' });
-    expect(within(tracker).getByText('Brief').closest('li')).toHaveAttribute('aria-current', 'step');
+    expect(within(tracker).getByText('Brief').closest('li')).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
   });
 
   it('enables Freeze when the check passes and makes a frozen brief read only', async () => {
@@ -259,7 +333,10 @@ describe('BriefPage', () => {
 
   it('shows not found for an unknown brief', async () => {
     mockFetch({ 'GET /products': () => jsonResponse(PRODUCTS) });
-    renderWithRouter([{ path: '/briefs/:briefId', element: <BriefPage /> }], [`/briefs/${BRIEF_ID}`]);
+    renderWithRouter(
+      [{ path: '/briefs/:briefId', element: <BriefPage /> }],
+      [`/briefs/${BRIEF_ID}`],
+    );
     expect(await screen.findByText('Brief not found')).toBeInTheDocument();
   });
 });

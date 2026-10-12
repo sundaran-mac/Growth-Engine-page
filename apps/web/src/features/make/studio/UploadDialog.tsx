@@ -1,4 +1,5 @@
 import { CloudArrowUp, FileArrowUp } from '@phosphor-icons/react';
+import { motion } from 'motion/react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import {
@@ -13,6 +14,7 @@ import { Button } from '@/components/atoms/Button';
 import { Icon } from '@/components/atoms/Icon';
 import { Input } from '@/components/atoms/Input';
 import { Field } from '@/components/molecules/Field';
+import { DURATION, EASE } from '@/components/motion';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -23,7 +25,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { ASSET_KIND_TITLES, guessMimeType, hasLoudness, parseLufsInput } from './helpers';
 import { StorageNotConnected } from './StorageNotConnected';
@@ -45,10 +53,19 @@ export interface UploadDialogProps {
   ratios?: readonly Ratio[];
 }
 
-export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio = null, ratios = RATIOS }: UploadDialogProps) {
+export function UploadDialog({
+  open,
+  onOpenChange,
+  briefId,
+  kind,
+  defaultRatio = null,
+  ratios = RATIOS,
+}: UploadDialogProps) {
   const upload = useAssetUpload(briefId);
   const [file, setFile] = React.useState<File | null>(null);
-  const [ratio, setRatio] = React.useState<Ratio | null>(kind === 'caption' ? null : (defaultRatio ?? ratios[0] ?? null));
+  const [ratio, setRatio] = React.useState<Ratio | null>(
+    kind === 'caption' ? null : (defaultRatio ?? ratios[0] ?? null),
+  );
   const [licence, setLicence] = React.useState('');
   const [consent, setConsent] = React.useState(false);
   const [aiGenerated, setAiGenerated] = React.useState(false);
@@ -63,7 +80,9 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
   function pick(f: File | null | undefined) {
     if (!f) return;
     setFile(f);
-    setFileError(checkUploadFile({ kind, mimeType: guessMimeType(f), sizeBytes: f.size, fileName: f.name }));
+    setFileError(
+      checkUploadFile({ kind, mimeType: guessMimeType(f), sizeBytes: f.size, fileName: f.name }),
+    );
   }
 
   async function submit(e: React.FormEvent) {
@@ -125,7 +144,12 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
         {state.status === 'error' && state.code === 'FEATURE_DISABLED' ? (
           <StorageNotConnected compact />
         ) : (
-          <form id={`${inputId}-form`} className="flex flex-col gap-4" onSubmit={(e) => void submit(e)} noValidate>
+          <form
+            id={`${inputId}-form`}
+            className="flex flex-col gap-4"
+            onSubmit={(e) => void submit(e)}
+            noValidate
+          >
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={inputId}>File</Label>
               <label
@@ -146,13 +170,19 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
                   busy && 'pointer-events-none opacity-60',
                 )}
               >
-                <Icon icon={file ? FileArrowUp : CloudArrowUp} size={28} className="text-joy-text" />
+                <Icon
+                  icon={file ? FileArrowUp : CloudArrowUp}
+                  size={28}
+                  className="text-joy-text"
+                />
                 {file ? (
                   <span className="text-sm font-semibold text-ink">
                     {file.name} · {formatBytes(file.size)}
                   </span>
                 ) : (
-                  <span className="text-sm text-muted">Drop a file here, or click to choose one</span>
+                  <span className="text-sm text-muted">
+                    Drop a file here, or click to choose one
+                  </span>
                 )}
               </label>
               <input
@@ -166,7 +196,11 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
                 onChange={(e) => pick(e.target.files?.[0])}
               />
               {fileError ? (
-                <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-danger-text">
+                <p
+                  id={`${inputId}-error`}
+                  role="alert"
+                  className="text-xs font-medium text-danger-text"
+                >
                   {fileError}
                 </p>
               ) : null}
@@ -174,7 +208,11 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
 
             {kind !== 'caption' ? (
               <Field label="Ratio">
-                <Select value={ratio ?? undefined} onValueChange={(v) => setRatio(v as Ratio)} disabled={busy}>
+                <Select
+                  value={ratio ?? undefined}
+                  onValueChange={(v) => setRatio(v as Ratio)}
+                  disabled={busy}
+                >
                   <SelectTrigger aria-label="Ratio">
                     <SelectValue placeholder="Choose a ratio" />
                   </SelectTrigger>
@@ -212,8 +250,16 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
               </Field>
             ) : null}
 
-            <Field label="Licence" hint="For music, footage or fonts. For example: Licensed track, commercial use.">
-              <Input value={licence} onChange={(e) => setLicence(e.target.value)} maxLength={300} disabled={busy} />
+            <Field
+              label="Licence"
+              hint="For music, footage or fonts. For example: Licensed track, commercial use."
+            >
+              <Input
+                value={licence}
+                onChange={(e) => setLicence(e.target.value)}
+                maxLength={300}
+                disabled={busy}
+              />
             </Field>
 
             <div className="flex flex-col gap-3">
@@ -242,7 +288,12 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
             </div>
 
             {state.status === 'uploading' ? (
-              <div className="flex flex-col gap-1.5">
+              <motion.div
+                className="flex flex-col gap-1.5"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: DURATION.base, ease: EASE }}
+              >
                 <div
                   role="progressbar"
                   aria-label={`Uploading ${state.fileName}`}
@@ -251,12 +302,18 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
                   aria-valuenow={progress}
                   className="h-2 w-full overflow-hidden rounded-pill bg-surface-sunken"
                 >
-                  <div className="h-full rounded-pill bg-joy transition-[width]" style={{ width: `${progress}%` }} />
+                  {/* The fill glides between part updates instead of jumping (keeps the rounded ends). */}
+                  <motion.div
+                    className="h-full rounded-pill bg-joy"
+                    initial={false}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: DURATION.slow, ease: 'linear' }}
+                  />
                 </div>
                 <p className="text-xs text-muted" aria-live="polite">
                   Uploading {progress}%
                 </p>
-              </div>
+              </motion.div>
             ) : null}
             {state.status === 'error' ? (
               <p role="alert" className="text-sm font-medium text-danger-text">
@@ -281,7 +338,12 @@ export function UploadDialog({ open, onOpenChange, briefId, kind, defaultRatio =
               Close
             </Button>
           )}
-          <Button type="submit" form={`${inputId}-form`} loading={busy} disabled={Boolean(fileError) || !file}>
+          <Button
+            type="submit"
+            form={`${inputId}-form`}
+            loading={busy}
+            disabled={Boolean(fileError) || !file}
+          >
             Upload
           </Button>
         </DialogFooter>

@@ -7,12 +7,14 @@ import { Button } from '@/components/atoms/Button';
 import { StatusChip, type StatusTone } from '@/components/atoms/StatusChip';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { ErrorState } from '@/components/molecules/ErrorState';
-import { DataTable, type DataTableColumn } from '@/components/organisms/DataTable';
+import type { DataTableColumn } from '@/components/organisms/DataTable';
 import { Panel } from '@/components/organisms/Panel';
 import { Page } from '@/components/templates/Page';
 import { useSelectedProduct } from '@/lib/use-selected-product';
+import { cn } from '@/lib/utils';
 import { QUEUE_PAGE_SIZE, usePublishQueue, type PublishQueueStage } from '@/features/publish/api';
 import { formatShortDateTime } from '@/features/publish/format';
+import { DataTable } from '@/components/organisms/DataTable';
 import { PlatformIcon } from '@/features/publish/PlatformIcon';
 
 const FILTERS: { value: PublishQueueStage | undefined; label: string }[] = [
@@ -32,7 +34,7 @@ const columns: DataTableColumn<PublishQueueItem>[] = [
   {
     id: 'code',
     header: 'CODE',
-    cell: (r) => <span className="text-13 font-semibold">{r.code}</span>,
+    cell: (r) => <span className="whitespace-nowrap text-13 font-semibold">{r.code}</span>,
   },
   {
     id: 'title',
@@ -78,7 +80,9 @@ const columns: DataTableColumn<PublishQueueItem>[] = [
     header: 'NEXT',
     cell: (r) =>
       r.nextScheduledAt ? (
-        <span className="text-13 font-medium">{formatShortDateTime(r.nextScheduledAt)}</span>
+        <span className="whitespace-nowrap text-13 font-medium">
+          {formatShortDateTime(r.nextScheduledAt)}
+        </span>
       ) : (
         <span className="text-13 text-muted">-</span>
       ),
@@ -114,15 +118,20 @@ export default function PublishListPage() {
             {FILTERS.map((f) => {
               const active = f.value === stage;
               return (
-                <Button
+                <button
                   key={f.label}
-                  size="sm"
-                  variant={active ? 'dark' : 'secondary'}
+                  type="button"
                   aria-pressed={active}
                   onClick={() => setStage(f.value)}
+                  className={cn(
+                    'focus-ring inline-flex h-9 items-center rounded-pill border-[1.5px] px-4 text-13 font-semibold transition-colors',
+                    active
+                      ? 'border-media-canvas bg-media-canvas text-media-text'
+                      : 'border-strong bg-surface-card text-ink hover:bg-surface-sunken',
+                  )}
                 >
                   {f.label}
-                </Button>
+                </button>
               );
             })}
           </div>
@@ -141,6 +150,8 @@ export default function PublishListPage() {
             />
           ) : (
             <DataTable
+              look="figma"
+              stagger
               columns={columns}
               rows={queue.data?.items}
               getRowId={(r) => r.briefId}

@@ -35,7 +35,9 @@ export const useCowriterStore = create<CowriterState>()((set) => ({
       },
     })),
   remove: (briefId, draftId) =>
-    set((s) => ({ drafts: { ...s.drafts, [briefId]: (s.drafts[briefId] ?? []).filter((d) => d.id !== draftId) } })),
+    set((s) => ({
+      drafts: { ...s.drafts, [briefId]: (s.drafts[briefId] ?? []).filter((d) => d.id !== draftId) },
+    })),
   clear: (briefId) =>
     set((s) => {
       const next = { ...s.drafts };

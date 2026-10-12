@@ -34,7 +34,11 @@ export function captionChipText(hook: string | null): string | null {
 }
 
 /** Ready master for a ratio, else any ready master of the right kind. */
-export function pickMaster(assets: readonly MakeAsset[], brief: Pick<Brief, 'kind'>, ratio?: Ratio | null): MakeAsset | null {
+export function pickMaster(
+  assets: readonly MakeAsset[],
+  brief: Pick<Brief, 'kind'>,
+  ratio?: Ratio | null,
+): MakeAsset | null {
   const kinds = masterAssetKinds(brief.kind);
   const ready = assets.filter((a) => a.status === 'ready' && kinds.includes(a.kind));
   return (ratio ? ready.find((a) => a.ratio === ratio) : undefined) ?? ready[0] ?? null;
@@ -47,7 +51,10 @@ export function readyVideo(assets: readonly MakeAsset[], ratio: Ratio): MakeAsse
 }
 
 /** "Send for review" needs a frozen brief with a ready master asset. */
-export function canSendForReview(brief: Pick<Brief, 'stage' | 'kind'>, assets: readonly MakeAsset[]): boolean {
+export function canSendForReview(
+  brief: Pick<Brief, 'stage' | 'kind'>,
+  assets: readonly MakeAsset[],
+): boolean {
   return brief.stage === 'frozen' && pickMaster(assets, brief) !== null;
 }
 
@@ -70,7 +77,10 @@ export const RENDER_KIND_LABELS: Record<RenderJobKind, string> = {
   captions: 'Captions',
 };
 
-export function renderJobChip(job: Pick<RenderJob, 'status' | 'progress'>): { label: string; tone: StatusTone } {
+export function renderJobChip(job: Pick<RenderJob, 'status' | 'progress'>): {
+  label: string;
+  tone: StatusTone;
+} {
   switch (job.status) {
     case 'done':
       return { label: 'Done', tone: 'care' };
@@ -114,7 +124,9 @@ export function formatLufs(value: number): string {
 }
 
 export function loudnessLabel(value: number | null, target: number): string {
-  return value === null ? `Loudness not set (target ${target})` : `${formatLufs(value)} (target ${target})`;
+  return value === null
+    ? `Loudness not set (target ${target})`
+    : `${formatLufs(value)} (target ${target})`;
 }
 
 export function isLoudnessOffTarget(value: number, target: number): boolean {

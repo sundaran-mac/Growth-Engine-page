@@ -26,7 +26,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useUpdateAsset } from '../api';
 import { hasLoudness, isLoudnessOffTarget, loudnessLabel, parseLufsInput } from './helpers';
 
@@ -50,7 +56,15 @@ function useSaveAsset(briefId: string) {
 }
 
 /** "-11.8 LUFS (target -14)" with an inline edit (input + Save). */
-export function LoudnessInline({ briefId, asset, canEdit }: { briefId: string; asset: MakeAsset; canEdit: boolean }) {
+export function LoudnessInline({
+  briefId,
+  asset,
+  canEdit,
+}: {
+  briefId: string;
+  asset: MakeAsset;
+  canEdit: boolean;
+}) {
   const { save, pending } = useSaveAsset(briefId);
   const [editing, setEditing] = React.useState(false);
   const [value, setValue] = React.useState('');
@@ -126,7 +140,13 @@ export function LoudnessInline({ briefId, asset, canEdit }: { briefId: string; a
       <Button type="submit" size="sm" loading={pending}>
         Save
       </Button>
-      <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={pending}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setEditing(false)}
+        disabled={pending}
+      >
         Cancel
       </Button>
     </form>
@@ -147,18 +167,30 @@ export function AssetDetailsButton({ briefId, asset }: { briefId: string; asset:
       >
         Details
       </Button>
-      {open ? <AssetDetailsDialog briefId={briefId} asset={asset} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <AssetDetailsDialog briefId={briefId} asset={asset} onClose={() => setOpen(false)} />
+      ) : null}
     </>
   );
 }
 
-function AssetDetailsDialog({ briefId, asset, onClose }: { briefId: string; asset: MakeAsset; onClose: () => void }) {
+function AssetDetailsDialog({
+  briefId,
+  asset,
+  onClose,
+}: {
+  briefId: string;
+  asset: MakeAsset;
+  onClose: () => void;
+}) {
   const { save, pending } = useSaveAsset(briefId);
   const [licence, setLicence] = React.useState(asset.licence ?? '');
   const [consent, setConsent] = React.useState(asset.consentOnFile);
   const [ai, setAi] = React.useState(asset.aiGenerated);
   const [ratio, setRatio] = React.useState<Ratio | null>(asset.ratio);
-  const [lufs, setLufs] = React.useState(asset.loudnessLufs === null ? '' : String(asset.loudnessLufs));
+  const [lufs, setLufs] = React.useState(
+    asset.loudnessLufs === null ? '' : String(asset.loudnessLufs),
+  );
   const [lufsError, setLufsError] = React.useState<string | null>(null);
   const id = React.useId();
   const showLoudness = hasLoudness(asset.kind);
@@ -233,7 +265,11 @@ function AssetDetailsDialog({ briefId, asset, onClose }: { briefId: string; asse
             <Input value={licence} onChange={(e) => setLicence(e.target.value)} maxLength={300} />
           </Field>
           <div className="flex items-center gap-2.5">
-            <Checkbox id={`${id}-consent`} checked={consent} onCheckedChange={(v) => setConsent(v === true)} />
+            <Checkbox
+              id={`${id}-consent`}
+              checked={consent}
+              onCheckedChange={(v) => setConsent(v === true)}
+            />
             <Label htmlFor={`${id}-consent`} className="font-medium">
               Consent on file for every face
             </Label>

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/atoms/Button';
 import { ErrorState } from '@/components/molecules/ErrorState';
+import { Stagger, StaggerItem } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
 import { useSelectedProduct } from '@/lib/use-selected-product';
 import { useSessionStore } from '@/stores/session';
@@ -64,21 +65,33 @@ export default function HomePage() {
           {!data ? (
             <HomeSkeleton />
           ) : (
-            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_392px]">
+            <Stagger className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_392px]">
               <div className="flex min-w-0 flex-col gap-6">
-                <NeedsYouPanel items={data.needsYou} />
-                <GoingOutTodayPanel posts={data.goingOutToday} />
-                <NextPostsPanel items={data.nextPosts} />
+                <StaggerItem>
+                  <NeedsYouPanel items={data.needsYou} />
+                </StaggerItem>
+                <StaggerItem>
+                  <GoingOutTodayPanel posts={data.goingOutToday} />
+                </StaggerItem>
+                <StaggerItem>
+                  <NextPostsPanel items={data.nextPosts} />
+                </StaggerItem>
               </div>
               <div className="flex min-w-0 flex-col gap-6">
-                <ClaudeThisWeekPanel
-                  claude={data.claudeThisWeek}
-                  onOpenNote={() => setNoteOpen(true)}
-                />
-                <PipelinePanel pipeline={data.pipeline} />
-                <ProductsPanel products={data.products} />
+                <StaggerItem>
+                  <ClaudeThisWeekPanel
+                    claude={data.claudeThisWeek}
+                    onOpenNote={() => setNoteOpen(true)}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <PipelinePanel pipeline={data.pipeline} />
+                </StaggerItem>
+                <StaggerItem>
+                  <ProductsPanel products={data.products} />
+                </StaggerItem>
               </div>
-            </div>
+            </Stagger>
           )}
         </>
       )}

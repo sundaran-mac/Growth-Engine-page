@@ -9,6 +9,7 @@ import {
 } from '@growth-desk/contract';
 import { Button } from '@/components/atoms/Button';
 import { StatTile } from '@/components/molecules/StatTile';
+import { Stagger, StaggerItem } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
 import { api } from '@/lib/api';
 import { useSelectedProduct } from '@/lib/use-selected-product';
@@ -124,6 +125,8 @@ export default function AnalyticsPage() {
     <Page
       title={`Analytics · last ${days} days`}
       subtitle={subtitle}
+      // Figma Analytics: 20px between the content blocks.
+      className="gap-5"
       actions={
         <>
           <Button variant="secondary" loading={exporting} onClick={() => void exportCsv()}>
@@ -154,49 +157,66 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile
-          label="Reach"
-          loading={loading}
-          value={s ? compactNumber(s.totals.reach) : '-'}
-          delta={s ? deltaText(s.deltas.reach, '') : undefined}
-          deltaTone={tone(s?.deltas.reach ?? null)}
-        />
-        <StatTile
-          label="Saves + shares"
-          loading={loading}
-          value={s ? compactNumber(s.totals.saves + s.totals.shares) : '-'}
-          delta={s ? deltaText(s.deltas.savesShares, '') : undefined}
-          deltaTone={tone(s?.deltas.savesShares ?? null)}
-        />
-        <StatTile
-          label="Installs (UTM)"
-          loading={loading}
-          value={s ? compactNumber(s.totals.installs) : '-'}
-          delta={s ? deltaText(s.deltas.installs, '') : undefined}
-          deltaTone={tone(s?.deltas.installs ?? null)}
-        />
-        <StatTile
-          label="Activated"
-          loading={loading}
-          value={s ? compactNumber(s.totals.activations) : '-'}
-          delta={
-            s
-              ? s.activationRatePct === null
-                ? 'No installs yet'
-                : `${s.activationRatePct}% of installs`
-              : undefined
-          }
-        />
-      </div>
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,240px))]">
+        <StaggerItem>
+          <StatTile
+            label="Reach"
+            loading={loading}
+            value={s ? compactNumber(s.totals.reach) : '-'}
+            delta={s ? deltaText(s.deltas.reach, '') : undefined}
+            deltaTone={tone(s?.deltas.reach ?? null)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatTile
+            label="Saves + shares"
+            loading={loading}
+            value={s ? compactNumber(s.totals.saves + s.totals.shares) : '-'}
+            delta={s ? deltaText(s.deltas.savesShares, '') : undefined}
+            deltaTone={tone(s?.deltas.savesShares ?? null)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatTile
+            label="Installs (UTM)"
+            loading={loading}
+            value={s ? compactNumber(s.totals.installs) : '-'}
+            delta={s ? deltaText(s.deltas.installs, '') : undefined}
+            deltaTone={tone(s?.deltas.installs ?? null)}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <StatTile
+            label="Activated"
+            loading={loading}
+            value={s ? compactNumber(s.totals.activations) : '-'}
+            delta={
+              s
+                ? s.activationRatePct === null
+                  ? 'No installs yet'
+                  : `${s.activationRatePct}% of installs`
+                : undefined
+            }
+          />
+        </StaggerItem>
+      </Stagger>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <InstallsByChannelPanel q={byChannel} />
-        <ReachByWeekPanel q={summary} />
-      </div>
-
-      <ValueByModePanel q={byMode} />
-      <PostsPanel q={posts} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
+      <Stagger className="flex flex-col gap-5">
+        <div className="grid items-start gap-5 lg:grid-cols-2">
+          <StaggerItem>
+            <InstallsByChannelPanel q={byChannel} />
+          </StaggerItem>
+          <StaggerItem>
+            <ReachByWeekPanel q={summary} />
+          </StaggerItem>
+        </div>
+        <StaggerItem>
+          <ValueByModePanel q={byMode} />
+        </StaggerItem>
+        <StaggerItem>
+          <PostsPanel q={posts} page={page} pageSize={PAGE_SIZE} onPage={setPage} />
+        </StaggerItem>
+      </Stagger>
 
       <MondayNoteDialog
         open={noteOpen}

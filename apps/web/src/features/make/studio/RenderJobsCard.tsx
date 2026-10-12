@@ -1,4 +1,5 @@
 import { DotsThreeVertical, Plus } from '@phosphor-icons/react';
+import { AnimatePresence, motion } from 'motion/react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import {
@@ -14,6 +15,7 @@ import { Input } from '@/components/atoms/Input';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { ErrorState, errorMessage } from '@/components/molecules/ErrorState';
 import { Field } from '@/components/molecules/Field';
+import { DURATION, EASE } from '@/components/motion';
 import { Panel } from '@/components/organisms/Panel';
 import {
   Dialog,
@@ -28,12 +30,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCreateRenderJob, useRenderJobs, useUpdateRenderJob } from '../api';
 import { RENDER_KIND_LABELS, renderJobChip } from './helpers';
 
-type DialogKind = { type: 'add' } | { type: 'progress'; job: RenderJob } | { type: 'fail'; job: RenderJob } | null;
+type DialogKind =
+  { type: 'add' } | { type: 'progress'; job: RenderJob } | { type: 'fail'; job: RenderJob } | null;
 
 export interface RenderJobsCardProps {
   briefId: string;
@@ -46,12 +55,20 @@ export function RenderJobsCard({ briefId, canEdit }: RenderJobsCardProps) {
   const update = useUpdateRenderJob(briefId);
   const [dialog, setDialog] = React.useState<DialogKind>(null);
 
-  function move(job: RenderJob, status: RenderJobStatus, extra: { progress?: number; error?: string | null } = {}) {
+  function move(
+    job: RenderJob,
+    status: RenderJobStatus,
+    extra: { progress?: number; error?: string | null } = {},
+  ) {
     update.mutate(
       { id: job.id, status, ...extra },
       {
-        onSuccess: () => toast.success(`${job.label}: ${renderJobChip({ status, progress: extra.progress ?? job.progress }).label}`),
-        onError: (err) => toast.error('Could not update the job', { description: errorMessage(err).detail }),
+        onSuccess: () =>
+          toast.success(
+            `${job.label}: ${renderJobChip({ status, progress: extra.progress ?? job.progress }).label}`,
+          ),
+        onError: (err) =>
+          toast.error('Could not update the job', { description: errorMessage(err).detail }),
       },
     );
   }
@@ -59,10 +76,16 @@ export function RenderJobsCard({ briefId, canEdit }: RenderJobsCardProps) {
   return (
     <Panel
       title={<span className="text-base">Render jobs</span>}
+      aria-busy={jobs.isPending || undefined}
       className="min-w-0 flex-1"
       actions={
         canEdit ? (
-          <Button variant="ghost" size="sm" leftIcon={Plus} onClick={() => setDialog({ type: 'add' })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={Plus}
+            onClick={() => setDialog({ type: 'add' })}
+          >
             Add job
           </Button>
         ) : null
@@ -75,56 +98,100 @@ export function RenderJobsCard({ briefId, canEdit }: RenderJobsCardProps) {
           ))}
         </div>
       ) : jobs.isError ? (
-        <ErrorState error={jobs.error} onRetry={() => void jobs.refetch()} retrying={jobs.isFetching} />
+        <ErrorState
+          error={jobs.error}
+          onRetry={() => void jobs.refetch()}
+          retrying={jobs.isFetching}
+        />
       ) : jobs.data.items.length === 0 ? (
-        <p className="text-13 text-muted">No render jobs yet. Add one when a render, voice, mix or cut-down starts.</p>
+        <p className="text-13 text-muted">
+          No render jobs yet. Add one when a render, voice, mix or cut-down starts.
+        </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {jobs.data.items.map((job) => {
-            const chip = renderJobChip(job);
-            const can = (to: RenderJobStatus) => canEdit && canMoveRenderJob(job.status, to);
-            const hasActions = canEdit && job.status !== 'done';
-            return (
-              <li key={job.id} className="flex items-center gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-13 text-ink">{job.label}</p>
-                  {job.status === 'failed' && job.error ? (
-                    <p className="truncate text-xs text-danger-text">{job.error}</p>
-                  ) : job.tool ? (
-                    <p className="truncate text-xs text-muted">{job.tool}</p>
+          <AnimatePresence>
+            {jobs.data.items.map((job) => {
+              const chip = renderJobChip(job);
+              const can = (to: RenderJobStatus) => canEdit && canMoveRenderJob(job.status, to);
+              const hasActions = canEdit && job.status !== 'done';
+              return (
+                <motion.li
+                  key={job.id}
+                  layout="position"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: DURATION.base, ease: EASE }}
+                  className="flex min-h-[23px] items-center gap-2"
+                >
+                  {/* Figma 241:1155: one 13px line per job; the tool name sits in the tooltip. */}
+                  <div
+                    className="min-w-0 flex-1"
+                    title={job.tool ? `Runs in ${job.tool}` : undefined}
+                  >
+                    <p className="truncate text-13 text-ink">
+                      {job.label}
+                      {job.tool ? <span className="sr-only"> (runs in {job.tool})</span> : null}
+                    </p>
+                    {job.status === 'failed' && job.error ? (
+                      <p className="truncate text-xs text-danger-text">{job.error}</p>
+                    ) : null}
+                  </div>
+                  <StatusChip tone={chip.tone}>{chip.label}</StatusChip>
+                  {hasActions ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <IconButton
+                          icon={DotsThreeVertical}
+                          label={`Update ${job.label}`}
+                          variant="ghost"
+                          size="sm"
+                          tooltip={false}
+                        />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {job.status === 'queued' ? (
+                          <DropdownMenuItem onSelect={() => move(job, 'running', { progress: 0 })}>
+                            Mark running
+                          </DropdownMenuItem>
+                        ) : null}
+                        {job.status === 'running' ? (
+                          <DropdownMenuItem onSelect={() => setDialog({ type: 'progress', job })}>
+                            Set progress
+                          </DropdownMenuItem>
+                        ) : null}
+                        {can('done') ? (
+                          <DropdownMenuItem onSelect={() => move(job, 'done', { progress: 100 })}>
+                            Mark done
+                          </DropdownMenuItem>
+                        ) : null}
+                        {can('failed') ? (
+                          <DropdownMenuItem
+                            destructive
+                            onSelect={() => setDialog({ type: 'fail', job })}
+                          >
+                            Mark failed
+                          </DropdownMenuItem>
+                        ) : null}
+                        {can('cancelled') ? (
+                          <DropdownMenuItem onSelect={() => move(job, 'cancelled')}>
+                            Cancel job
+                          </DropdownMenuItem>
+                        ) : null}
+                        {can('queued') ? (
+                          <DropdownMenuItem
+                            onSelect={() => move(job, 'queued', { progress: 0, error: null })}
+                          >
+                            Retry
+                          </DropdownMenuItem>
+                        ) : null}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : null}
-                </div>
-                <StatusChip tone={chip.tone}>{chip.label}</StatusChip>
-                {hasActions ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <IconButton icon={DotsThreeVertical} label={`Update ${job.label}`} variant="ghost" size="sm" tooltip={false} />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {job.status === 'queued' ? (
-                        <DropdownMenuItem onSelect={() => move(job, 'running', { progress: 0 })}>Mark running</DropdownMenuItem>
-                      ) : null}
-                      {job.status === 'running' ? (
-                        <DropdownMenuItem onSelect={() => setDialog({ type: 'progress', job })}>Set progress</DropdownMenuItem>
-                      ) : null}
-                      {can('done') ? <DropdownMenuItem onSelect={() => move(job, 'done', { progress: 100 })}>Mark done</DropdownMenuItem> : null}
-                      {can('failed') ? (
-                        <DropdownMenuItem destructive onSelect={() => setDialog({ type: 'fail', job })}>
-                          Mark failed
-                        </DropdownMenuItem>
-                      ) : null}
-                      {can('cancelled') ? (
-                        <DropdownMenuItem onSelect={() => move(job, 'cancelled')}>Cancel job</DropdownMenuItem>
-                      ) : null}
-                      {can('queued') ? (
-                        <DropdownMenuItem onSelect={() => move(job, 'queued', { progress: 0, error: null })}>Retry</DropdownMenuItem>
-                      ) : null}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
-              </li>
-            );
-          })}
+                </motion.li>
+              );
+            })}
+          </AnimatePresence>
         </ul>
       )}
 
@@ -152,7 +219,15 @@ export function RenderJobsCard({ briefId, canEdit }: RenderJobsCardProps) {
   );
 }
 
-function AddJobDialog({ briefId, open, onOpenChange }: { briefId: string; open: boolean; onOpenChange: (o: boolean) => void }) {
+function AddJobDialog({
+  briefId,
+  open,
+  onOpenChange,
+}: {
+  briefId: string;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const create = useCreateRenderJob(briefId);
   const [kind, setKind] = React.useState<RenderJobKind>('render');
   const [label, setLabel] = React.useState('');
@@ -236,8 +311,17 @@ function ProgressDialog({
         <DialogHeader>
           <DialogTitle>Set progress</DialogTitle>
         </DialogHeader>
-        <Field label="Progress (0 to 100)" error={valid ? undefined : 'Use a whole number from 0 to 100.'}>
-          <Input type="number" min={0} max={100} value={value} onChange={(e) => setValue(e.target.value)} />
+        <Field
+          label="Progress (0 to 100)"
+          error={valid ? undefined : 'Use a whole number from 0 to 100.'}
+        >
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
         </Field>
         <DialogFooter>
           <Button variant="secondary" onClick={onClose}>

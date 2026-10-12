@@ -5,7 +5,10 @@ import { Icon, type IconComponent } from './Icon';
 
 export type IconButtonVariant = 'outline' | 'ghost' | 'dark' | 'primary';
 
-export interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+export interface IconButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'children'
+> {
   icon: IconComponent;
   /** Required: the accessible name (and tooltip text). */
   label: string;
@@ -24,14 +27,26 @@ const variants: Record<IconButtonVariant, string> = {
 };
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ icon, label, variant = 'outline', size = 'md', tooltip = true, className, type = 'button', ...props }, ref) => {
+  (
+    {
+      icon,
+      label,
+      variant = 'outline',
+      size = 'md',
+      tooltip = true,
+      className,
+      type = 'button',
+      ...props
+    },
+    ref,
+  ) => {
     const button = (
       <button
         ref={ref}
         type={type}
         aria-label={label}
         className={cn(
-          'focus-ring relative inline-flex shrink-0 items-center justify-center rounded-pill transition-colors disabled:pointer-events-none disabled:opacity-50',
+          'focus-ring relative inline-flex shrink-0 items-center justify-center rounded-pill transition-[color,background-color,border-color,box-shadow,filter,transform] duration-150 ease-out motion-safe:active:scale-[0.94] disabled:pointer-events-none disabled:opacity-50',
           size === 'md' ? 'size-10' : 'size-8',
           variants[variant],
           className,

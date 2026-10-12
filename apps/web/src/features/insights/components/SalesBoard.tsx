@@ -14,8 +14,10 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
+import { LayoutGroup, motion } from 'motion/react';
 import type { LeadStage, LeadView } from '@growth-desk/contract';
 import { StatusChip } from '@/components/atoms/StatusChip';
+import { DURATION, EASE } from '@/components/motion';
 import { cn } from '@/lib/utils';
 import { productChipTone } from '../format';
 import { sourceLine, STAGE_LABELS } from '../labels';
@@ -34,11 +36,13 @@ export function ProductChip({
 
 function LeadCard({
   lead,
+  index,
   selected,
   draggable,
   onSelect,
 }: {
   lead: LeadView;
+  index: number;
   selected: boolean;
   draggable: boolean;
   onSelect: (id: string) => void;
@@ -49,7 +53,17 @@ function LeadCard({
     disabled: !draggable,
   });
   return (
-    <li>
+    // layoutId lets the card glide to its new column when the lead moves (same id, new list).
+    <motion.li
+      layoutId={`lead-${lead.id}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        default: { duration: DURATION.base, ease: EASE, delay: Math.min(index, 8) * 0.04 },
+        layout: { duration: DURATION.base, ease: EASE },
+      }}
+      className={cn('relative', isDragging && 'z-10')}
+    >
       <button
         type="button"
         ref={setNodeRef}
@@ -70,7 +84,7 @@ function LeadCard({
         <ProductChip lead={lead} />
         <span className="text-2xs text-muted">{sourceLine(lead)}</span>
       </button>
-    </li>
+    </motion.li>
   );
 }
 
@@ -105,7 +119,8 @@ function Column({
         className="flex items-center justify-between text-2xs font-semibold uppercase tracking-[0.08em] text-muted"
       >
         {STAGE_LABELS[stage]}
-        <span aria-label={`${leads.length} leads`}>{leads.length}</span>
+        {/* Figma shows no count; screen readers still hear it. */}
+        <span className="sr-only">, {leads.length} leads</span>
       </h2>
       {leads.length === 0 ? (
         <p className="rounded-[14px] border border-dashed border-strong px-3 py-4 text-center text-2xs text-muted">
@@ -113,10 +128,11 @@ function Column({
         </p>
       ) : (
         <ul className="flex flex-col gap-2.5">
-          {leads.map((l) => (
+          {leads.map((l, i) => (
             <LeadCard
               key={l.id}
               lead={l}
+              index={i}
               selected={l.id === selectedId}
               draggable={canMove(l)}
               onSelect={onSelect}
@@ -181,22 +197,24 @@ export function SalesBoard({
         },
       }}
     >
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {stages.map((stage) => {
-          const items = byStage.get(stage) ?? [];
-          return (
-            <Column
-              key={stage}
-              stage={stage}
-              leads={items}
-              selectedId={selectedId}
-              acceptsDrops={acceptsDrops}
-              canMove={canMove}
-              onSelect={onSelect}
-            />
-          );
-        })}
-      </div>
+      <LayoutGroup>
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {stages.map((stage) => {
+            const items = byStage.get(stage) ?? [];
+            return (
+              <Column
+                key={stage}
+                stage={stage}
+                leads={items}
+                selectedId={selectedId}
+                acceptsDrops={acceptsDrops}
+                canMove={canMove}
+                onSelect={onSelect}
+              />
+            );
+          })}
+        </div>
+      </LayoutGroup>
     </DndContext>
   );
 }

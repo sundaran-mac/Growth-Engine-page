@@ -1,4 +1,12 @@
-import { CaretDown, PencilSimple, Snowflake, Sparkle, Warning } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  CaretDown,
+  LockSimple,
+  PencilSimple,
+  Snowflake,
+  Sparkle,
+  Warning,
+} from '@phosphor-icons/react';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,8 +23,14 @@ import { Input } from '@/components/atoms/Input';
 import { StatusChip } from '@/components/atoms/StatusChip';
 import { ConfirmDialog } from '@/components/molecules/ConfirmDialog';
 import { Field } from '@/components/molecules/Field';
+import { FadeIn } from '@/components/motion';
 import { Page } from '@/components/templates/Page';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { isApiError } from '@/lib/api';
 import { useSelectedProduct } from '@/lib/use-selected-product';
 import { useBriefOptions, useFreezeBrief, useMakeFeatures, useUnfreezeBrief } from '../api';
@@ -44,8 +58,12 @@ const statusText: Record<AutosaveStatus, string> = {
 function SaveStatus({ status, onRetry }: { status: AutosaveStatus; onRetry: () => void }) {
   return (
     <p role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-muted">
-      {status === 'error' ? <Warning size={14} className="text-danger-text" aria-hidden="true" /> : null}
-      <span className={status === 'error' ? 'text-danger-text' : undefined}>{statusText[status]}</span>
+      {status === 'error' ? (
+        <Warning size={14} className="text-danger-text" aria-hidden="true" />
+      ) : null}
+      <span className={status === 'error' ? 'text-danger-text' : undefined}>
+        {statusText[status]}
+      </span>
       {status === 'error' ? (
         <Button variant="link" size="sm" className="h-auto p-0" onClick={onRetry}>
           Try again
@@ -65,7 +83,8 @@ function freezeBlockReason(opts: {
   if (opts.stage !== 'brief') return 'Only a brief in the Brief stage can be frozen.';
   if (opts.blocking) return 'Fix the red flags in the claim check first.';
   if (opts.unsaved) return 'Wait until your changes are saved.';
-  if (!opts.hook?.trim() || opts.beats.every((b) => !b.trim())) return 'Write a hook and at least one beat first.';
+  if (!opts.hook?.trim() || opts.beats.every((b) => !b.trim()))
+    return 'Write a hook and at least one beat first.';
   return null;
 }
 
@@ -92,7 +111,13 @@ export function BriefEditor({ brief }: { brief: Brief }) {
   // Content memory: warn while typing when the hook repeats earlier content (any product).
   const memory = useLiveMemoryCheck(
     editable && values.hook?.trim()
-      ? { productId: brief.productId, kind: 'brief_hook', title: values.title, body: values.hook, excludeBriefId: brief.id }
+      ? {
+          productId: brief.productId,
+          kind: 'brief_hook',
+          title: values.title,
+          body: values.hook,
+          excludeBriefId: brief.id,
+        }
       : null,
   );
   const flags = live.result?.flags ?? brief.claimFlags;
@@ -127,7 +152,9 @@ export function BriefEditor({ brief }: { brief: Brief }) {
     } catch (err) {
       const msg = isApiError(err) ? err : null;
       toast.error(msg?.title ?? 'Could not freeze', {
-        description: msg?.detail ?? (msg?.code === 'CLAIM_CHECK_FAILED' ? 'Fix the red flags first.' : 'Please try again.'),
+        description:
+          msg?.detail ??
+          (msg?.code === 'CLAIM_CHECK_FAILED' ? 'Fix the red flags first.' : 'Please try again.'),
       });
       throw err;
     }
@@ -152,18 +179,27 @@ export function BriefEditor({ brief }: { brief: Brief }) {
     <Page
       title={`${brief.code} · ${values.title}`}
       subtitle={subtitle}
+      className="gap-5"
       actions={
         <>
           {editable ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" rightIcon={CaretDown} loading={cowriter.pendingKind !== null}>
+                <Button
+                  variant="secondary"
+                  rightIcon={CaretDown}
+                  loading={cowriter.pendingKind !== null}
+                >
                   Ask Claude
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {ASSIST_KINDS.map((k) => (
-                  <DropdownMenuItem key={k} disabled={!claudeEnabled} onSelect={() => void cowriter.ask(k)}>
+                  <DropdownMenuItem
+                    key={k}
+                    disabled={!claudeEnabled}
+                    onSelect={() => void cowriter.ask(k)}
+                  >
                     <Sparkle size={16} aria-hidden="true" />
                     {ASSIST_KIND_LABELS[k]}
                   </DropdownMenuItem>
@@ -206,7 +242,9 @@ export function BriefEditor({ brief }: { brief: Brief }) {
           />
         ) : null}
         <div className="ml-auto flex flex-col items-end gap-0.5">
-          {editable ? <SaveStatus status={autosave.status} onRetry={() => void autosave.flush()} /> : null}
+          {editable ? (
+            <SaveStatus status={autosave.status} onRetry={() => void autosave.flush()} />
+          ) : null}
           {reason && brief.stage === 'brief' ? (
             <p id="freeze-reason" className="text-xs text-muted">
               {reason}
@@ -216,10 +254,14 @@ export function BriefEditor({ brief }: { brief: Brief }) {
       </div>
 
       {autosave.status === 'conflict' ? (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-tile border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-text">
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-tile border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-text"
+        >
           <Warning size={18} aria-hidden="true" />
           <p className="flex-1">
-            <span className="font-semibold">Someone else changed this brief.</span> Your last edits are not saved. Reload to see their version.
+            <span className="font-semibold">Someone else changed this brief.</span> Your last edits
+            are not saved. Reload to see their version.
           </p>
           <Button variant="secondary" size="sm" onClick={() => setConfirmReload(true)}>
             Reload
@@ -228,17 +270,24 @@ export function BriefEditor({ brief }: { brief: Brief }) {
       ) : null}
 
       {!editable ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-tile bg-surface-sunken px-4 py-3 text-13 text-ink">
-          <p className="flex-1">
+        <FadeIn
+          role="status"
+          className="flex flex-wrap items-center gap-3 rounded-tile border border-hairline bg-surface-sunken py-2.5 pl-4 pr-2.5 text-13 text-ink"
+        >
+          <LockSimple size={18} weight="bold" className="shrink-0 text-muted" aria-hidden="true" />
+          <p className="min-w-0 flex-1">
             This brief is {brief.stage}. The script is locked.
             {brief.stage === 'frozen' ? ' Unfreeze it to edit, or make it in the Studio.' : ''}
           </p>
           {NEXT_STEP[brief.stage] ? (
-            <Button variant="dark" size="sm" asChild>
-              <Link to={NEXT_STEP[brief.stage]!.to(brief.id)}>{NEXT_STEP[brief.stage]!.label}</Link>
+            <Button variant="dark" size="md" asChild className="shrink-0">
+              <Link to={NEXT_STEP[brief.stage]!.to(brief.id)}>
+                {NEXT_STEP[brief.stage]!.label}
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
             </Button>
           ) : null}
-        </div>
+        </FadeIn>
       ) : null}
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
@@ -267,7 +316,11 @@ export function BriefEditor({ brief }: { brief: Brief }) {
             values={values}
             readOnly={!editable}
             options={options.data}
-            people={{ owner: brief.owner, claimsApprover: brief.claimsApprover, brandApprover: brief.brandApprover }}
+            people={{
+              owner: brief.owner,
+              claimsApprover: brief.claimsApprover,
+              brandApprover: brief.brandApprover,
+            }}
             onChange={autosave.update}
           />
         </div>
@@ -319,7 +372,11 @@ export function BriefEditor({ brief }: { brief: Brief }) {
         }}
       >
         <Field label="Title" required>
-          <Input value={titleDraft} maxLength={BRIEF_TITLE_MAX} onChange={(e) => setTitleDraft(e.target.value)} />
+          <Input
+            value={titleDraft}
+            maxLength={BRIEF_TITLE_MAX}
+            onChange={(e) => setTitleDraft(e.target.value)}
+          />
         </Field>
       </ConfirmDialog>
     </Page>

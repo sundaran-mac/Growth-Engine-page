@@ -357,6 +357,7 @@ export function ClaudeTab({
       >
         <div className="px-2 pb-4">
           <DataTable
+            stagger
             caption="Weekly runs of this product"
             columns={columns}
             rows={runs.data?.items}

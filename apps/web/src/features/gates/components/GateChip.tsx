@@ -23,7 +23,7 @@ export function GateChip({ approval, decidableIds, className }: GateChipProps) {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2 rounded-tile px-3.5 py-2.5 text-13',
+        'inline-flex items-center gap-2 rounded-tile px-3.5 py-2.5 text-13 transition-colors duration-200',
         tones[state].box,
         className,
       )}

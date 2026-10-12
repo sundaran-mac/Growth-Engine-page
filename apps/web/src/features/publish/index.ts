@@ -3,4 +3,4 @@ export { ConnectChannelButton, type ConnectChannelButtonProps } from './ConnectC
 export { useConnectChannel } from './use-connect-channel';
 export { publishKeys, useChannelAccounts, useDisconnectChannel, useStartOAuth } from './api';
 export { PlatformIcon, type PlatformIconProps } from './PlatformIcon';
-export { howLabel, howTone } from './format';
+export { howLabel, howTone, zoneAbbr as zoneAbbrAt } from './format';
