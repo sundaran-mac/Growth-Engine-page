@@ -1,0 +1,45 @@
+{
+  "name": "growth-desk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Growth Desk: plan, make, approve, publish, measure and sell, for every Humini product.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "e2e"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm run build -w @growth-desk/contract && concurrently -k -n api,worker,web -c blue,magenta,green \"npm run dev -w @growth-desk/api\" \"npm run dev:worker -w @growth-desk/api\" \"npm run dev -w @growth-desk/web\"",
+    "build": "npm run build -w @growth-desk/contract && npm run build -w @growth-desk/api && npm run build -w @growth-desk/web --if-present",
+    "typecheck": "npm run build -w @growth-desk/contract && npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test -w @growth-desk/contract && npm run test -w @growth-desk/api && npm run test -w @growth-desk/web --if-present",
+    "db:generate": "npm run db:generate -w @growth-desk/api",
+    "db:migrate": "npm run db:migrate -w @growth-desk/api",
+    "db:seed": "npm run db:seed -w @growth-desk/api",
+    "docker:infra": "docker compose up -d postgres minio minio-init",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "test:e2e": "npm run test:e2e -w @growth-desk/e2e"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.19.0",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

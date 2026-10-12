@@ -1,0 +1,31 @@
+{
+  "name": "@growth-desk/contract",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared zod schemas, enums and types for the Growth Desk API and web app.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.4"
+  }
+}

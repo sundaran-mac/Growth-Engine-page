@@ -1,0 +1,19 @@
+{
+  "name": "@growth-desk/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end tests for Growth Desk.",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e": "playwright test",
+    "test:ui": "playwright test --ui",
+    "list": "playwright test --list",
+    "report": "playwright show-report",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0"
+  }
+}

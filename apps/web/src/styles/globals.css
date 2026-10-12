@@ -1,0 +1,87 @@
+@import '@fontsource/poppins/latin-400.css';
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
+@import '@fontsource/poppins/latin-700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens. Values are the Figma variables of file sUxvEcixtr0XhtgLdNhWZU,
+ * written as RGB channels so Tailwind opacity modifiers work (bg-joy/20).
+ */
+@layer base {
+  :root {
+    --surface-base: 251 249 243; /* #fbf9f3 */
+    --surface-card: 255 255 255; /* #ffffff */
+    --surface-sunken: 242 238 228; /* #f2eee4 */
+    --text-primary: 26 23 20; /* #1a1714 */
+    --text-muted: 156 147 138; /* #9c938a */
+    --border-hairline: 230 224 212; /* #e6e0d4 */
+    --border-strong: 212 204 188; /* #d4ccbc */
+    --heart-joy: 255 154 0; /* #ff9a00 */
+    --heart-joy-soft: 255 241 220; /* #fff1dc */
+    --heart-joy-badge: 255 246 234; /* #fff6ea */
+    --heart-joy-text-dark: 150 87 10; /* #96570a */
+    --heart-care: 62 117 104; /* #3e7568 */
+    --heart-care-soft: 229 241 236; /* #e5f1ec */
+    --heart-care-text-dark: 45 84 75; /* #2d544b */
+    --media-canvas: 14 13 12; /* #0e0d0c */
+    --media-text: 245 242 236; /* #f5f2ec */
+
+    /* Not in Figma: status colours and the focus ring */
+    --status-danger: 196 50 40; /* #c43228 */
+    --status-danger-soft: 252 231 228; /* #fce7e4 */
+    --status-danger-text: 140 30 22; /* #8c1e16 */
+    --status-success: 46 125 80; /* #2e7d50 */
+    --status-success-soft: 225 242 230; /* #e1f2e6 */
+    --status-success-text: 31 92 56; /* #1f5c38 */
+    --focus-ring: 26 23 20; /* text/primary on light grounds */
+
+    --radius: 12px;
+  }
+
+  * {
+    @apply border-hairline;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface-base font-sans text-sm text-ink antialiased;
+    font-feature-settings: 'liga' 1, 'kern' 1;
+  }
+
+  :focus-visible {
+    outline: none;
+  }
+
+  ::selection {
+    @apply bg-joy-soft text-ink;
+  }
+}
+
+@layer utilities {
+  /* Visible keyboard focus on light grounds */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base;
+  }
+  /* Visible keyboard focus on the dark sidebar */
+  .focus-ring-dark {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-joy focus-visible:ring-offset-2 focus-visible:ring-offset-media-canvas;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

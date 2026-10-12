@@ -1,0 +1,177 @@
+# Growth Desk local stack.
+#
+# Full stack:   docker compose up -d --build      (web on http://localhost:8080)
+# Infra only:   docker compose up -d postgres minio minio-init   (then `npm run dev`)
+#
+# Every value has a dev fallback, so this runs with an empty .env.
+# Host ports: Postgres 5433 (5432 is often taken by another local Postgres), MinIO 9000 and 9001,
+# API 4000, web 8080. Change them with POSTGRES_PORT, MINIO_PORT, MINIO_CONSOLE_PORT, API_PORT, WEB_PORT.
+name: growth-desk
+
+x-app-env: &app-env
+  NODE_ENV: ${NODE_ENV:-development}
+  PORT: '4000'
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  TRUST_PROXY: '1'
+  WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080,http://localhost:5173}
+  PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+  APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+  # Inside Docker the API always talks to the compose Postgres and MinIO.
+  DATABASE_URL: postgres://${POSTGRES_USER:-growthdesk}:${POSTGRES_PASSWORD:-growthdesk-dev}@postgres:5432/${POSTGRES_DB:-growth_desk}
+  SESSION_SECRET: ${SESSION_SECRET:-}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+  COOKIE_SECURE: ${COOKIE_SECURE:-}
+  SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-}
+  STORAGE_DRIVER: ${STORAGE_DRIVER:-minio}
+  STORAGE_BUCKET: ${STORAGE_BUCKET:-growth-desk}
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:9000}
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER:-growthdesk}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-growthdesk-dev-secret}
+  R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+  R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+  R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+  R2_BUCKET: ${R2_BUCKET:-}
+  R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+  CLAUDE_MONTHLY_TOKEN_CAP: ${CLAUDE_MONTHLY_TOKEN_CAP:-2000000}
+  VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+  VOYAGE_MODEL: ${VOYAGE_MODEL:-}
+  META_APP_ID: ${META_APP_ID:-}
+  META_APP_SECRET: ${META_APP_SECRET:-}
+  META_WEBHOOK_VERIFY_TOKEN: ${META_WEBHOOK_VERIFY_TOKEN:-}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+  LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:-}
+  LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:-}
+  OAUTH_REDIRECT_BASE_URL: ${OAUTH_REDIRECT_BASE_URL:-}
+  GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+  TRACKING_LINK_BASE: ${TRACKING_LINK_BASE:-live.humini.app}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:-}
+
+services:
+  # Postgres 16 with the pgvector extension (content memory, ADR 0009). Same data volume.
+  # Debian based: after a switch from the old Alpine image, run REINDEX once
+  # (see docs/runbooks/content-memory.md).
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-growthdesk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-growthdesk-dev}
+      POSTGRES_DB: ${POSTGRES_DB:-growth_desk}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # The MinIO project no longer publishes images to Docker Hub or Quay.
+  # This is the community build maintained by Pigsty, pinned to one release.
+  minio:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-growthdesk}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-growthdesk-dev-secret}
+      # MinIO applies CORS server-wide (it does not implement per-bucket CORS).
+      MINIO_API_CORS_ALLOW_ORIGIN: ${MINIO_CORS_ALLOW_ORIGIN:-http://localhost:5173,http://localhost:8080}
+    ports:
+      - '${MINIO_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://localhost:9000/minio/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio-init:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ['/bin/sh', '/init/init.sh']
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-growthdesk}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-growthdesk-dev-secret}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-growth-desk}
+    volumes:
+      - ./docker/minio:/init:ro
+    restart: 'no'
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    image: growth-desk-api:local
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      # Dev only: load the sample data on start (idempotent; never runs in production).
+      SEED_ON_START: ${SEED_ON_START:-true}
+    command:
+      [
+        'sh',
+        '-c',
+        'node dist/db/migrate.js && if [ "$$SEED_ON_START" = "true" ] && [ "$$NODE_ENV" != "production" ]; then node dist/db/seed/index.js; fi && exec node dist/server.js',
+      ]
+    ports:
+      - '${API_PORT:-4000}:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:4000/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    image: growth-desk-api:local
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+    command: ['node', 'dist/worker.js']
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    image: growth-desk-web:local
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-8080}:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  miniodata:
